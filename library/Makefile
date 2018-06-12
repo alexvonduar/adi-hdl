@@ -35,7 +35,6 @@ clean:
 	$(MAKE) -C axi_ad9265 clean
 	$(MAKE) -C axi_ad9361 clean
 	$(MAKE) -C axi_ad9371 clean
-	$(MAKE) -C axi_adrv9009 clean
 	$(MAKE) -C axi_ad9434 clean
 	$(MAKE) -C axi_ad9467 clean
 	$(MAKE) -C axi_ad9625 clean
@@ -46,6 +45,7 @@ clean:
 	$(MAKE) -C axi_ad9963 clean
 	$(MAKE) -C axi_adc_decimate clean
 	$(MAKE) -C axi_adc_trigger clean
+	$(MAKE) -C axi_adrv9009 clean
 	$(MAKE) -C axi_clkgen clean
 	$(MAKE) -C axi_dac_interpolate clean
 	$(MAKE) -C axi_dmac clean
@@ -67,6 +67,8 @@ clean:
 	$(MAKE) -C cn0363/cn0363_dma_sequencer clean
 	$(MAKE) -C cn0363/cn0363_phase_data_sync clean
 	$(MAKE) -C cordic_demod clean
+	$(MAKE) -C jesd204/ad_ip_jesd204_tpl_adc clean
+	$(MAKE) -C jesd204/ad_ip_jesd204_tpl_dac clean
 	$(MAKE) -C jesd204/axi_jesd204_common clean
 	$(MAKE) -C jesd204/axi_jesd204_rx clean
 	$(MAKE) -C jesd204/axi_jesd204_tx clean
@@ -141,7 +143,6 @@ lib:
 	$(MAKE) -C axi_ad9265
 	$(MAKE) -C axi_ad9361
 	$(MAKE) -C axi_ad9371
-	$(MAKE) -C axi_adrv9009
 	$(MAKE) -C axi_ad9434
 	$(MAKE) -C axi_ad9467
 	$(MAKE) -C axi_ad9625
@@ -152,6 +153,7 @@ lib:
 	$(MAKE) -C axi_ad9963
 	$(MAKE) -C axi_adc_decimate
 	$(MAKE) -C axi_adc_trigger
+	$(MAKE) -C axi_adrv9009
 	$(MAKE) -C axi_clkgen
 	$(MAKE) -C axi_dac_interpolate
 	$(MAKE) -C axi_dmac
@@ -173,6 +175,8 @@ lib:
 	$(MAKE) -C cn0363/cn0363_dma_sequencer
 	$(MAKE) -C cn0363/cn0363_phase_data_sync
 	$(MAKE) -C cordic_demod
+	$(MAKE) -C jesd204/ad_ip_jesd204_tpl_adc
+	$(MAKE) -C jesd204/ad_ip_jesd204_tpl_dac
 	$(MAKE) -C jesd204/axi_jesd204_common
 	$(MAKE) -C jesd204/axi_jesd204_rx
 	$(MAKE) -C jesd204/axi_jesd204_tx

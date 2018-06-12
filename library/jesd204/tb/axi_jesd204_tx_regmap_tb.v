@@ -45,12 +45,13 @@
 module axi_jesd204_tx_tb;
   parameter VCD_FILE = "axi_jesd204_tx_regmap_tb.vcd";
   parameter NUM_LANES = 2;
+  parameter NUM_LINKS = 2;
 
   `define TIMEOUT 1000000
   `include "tb_base.v"
 
   reg [1:0] core_status_state = 2'b00;
-  reg core_status_sync = 1'b0;
+  reg [NUM_LINKS-1:0] core_status_sync = {NUM_LINKS{1'b0}};
 
   wire s_axi_aclk = clk;
   wire s_axi_aresetn = ~reset;
@@ -156,10 +157,11 @@ module axi_jesd204_tx_tb;
     for (i = 0; i < 1024; i = i + 1)
       expected_reg_mem[i] <= 'h00;
     /* Non zero power-on-reset values */
-    set_reset_reg_value('h00, 32'h00010061); /* PCORE version register */
+    set_reset_reg_value('h00, 32'h00010161); /* PCORE version register */
     set_reset_reg_value('h0c, 32'h32303454); /* PCORE magic register */
     set_reset_reg_value('h10, NUM_LANES); /* Number of lanes */
     set_reset_reg_value('h14, 'h2); /* Datapath width */
+    set_reset_reg_value('h18, NUM_LINKS); /* Number of links */
     set_reset_reg_value('hc0, 'h1); /* Link disable */
     set_reset_reg_value('hc4, 'h1); /* Core state */
 //    set_reset_reg_value('hc8, 'h80000); /* clock monitor */
@@ -245,6 +247,10 @@ module axi_jesd204_tx_tb;
     write_reg_and_update('h214, 32'h03);
     check_all_registers();
 
+    /* Check links disable */
+    write_reg_and_update('h218, {NUM_LINKS{1'b1}});
+    check_all_registers();
+
     /* Check JESD TX configuration */
     write_reg_and_update('h240, 32'h07);
     check_all_registers();
@@ -254,23 +260,23 @@ module axi_jesd204_tx_tb;
     check_all_registers();
 
     /* Check status register */
-    core_status_state = 2'b01;
+    core_status_state = 2'b01;  /* CGS */
     set_reset_reg_value('h280, 32'h00000001);
     check_all_registers();
-    core_status_state = 2'b10;
+    core_status_state = 2'b10; /* ILAS */
     set_reset_reg_value('h280, 32'h00000002);
     check_all_registers();
-    core_status_state = 2'b11;
+    core_status_state = 2'b11; /* DATA */
     set_reset_reg_value('h280, 32'h00000003);
     check_all_registers();
-    core_status_state = 2'b00;
+    core_status_state = 2'b00; /* WAIT */
     set_reset_reg_value('h280, 32'h00000000);
     check_all_registers();
 
-    core_status_sync = 1'b1;
-    set_reset_reg_value('h280, 32'h00000010);
+    core_status_sync = {NUM_LINKS{1'b1}}; /* SYNC deasserted */
+    set_reset_reg_value('h280, ({NUM_LINKS{1'b1}} << 4));
     check_all_registers();
-    core_status_sync = 1'b0;
+    core_status_sync = {NUM_LINKS{1'b0}}; /* SYNC asserted */
     set_reset_reg_value('h280, 32'h00000000);
     check_all_registers();
 
@@ -291,6 +297,7 @@ module axi_jesd204_tx_tb;
     invert_register('h200);
     invert_register('h210);
     invert_register('h214);
+    invert_register('h218);
     invert_register('h240);
     invert_register('h244);
     for (i = 0; i < NUM_LANES; i = i + 1) begin
@@ -315,7 +322,8 @@ module axi_jesd204_tx_tb;
   always @(*) #4 core_clk <= ~core_clk;
 
   axi_jesd204_tx #(
-    .NUM_LANES(NUM_LANES)
+    .NUM_LANES(NUM_LANES),
+    .NUM_LINKS(NUM_LINKS)
   ) i_axi (
     .s_axi_aclk(s_axi_aclk),
     .s_axi_aresetn(s_axi_aresetn),

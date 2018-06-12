@@ -44,36 +44,21 @@
 
 module tx_tb;
   parameter VCD_FILE = "tx_tb.vcd";
-  parameter NUM_LANES = 1;
+  parameter NUM_LANES = 4;
+  parameter NUM_LINKS = 2;
   parameter OCTETS_PER_FRAME = 4;
   parameter FRAMES_PER_MULTIFRAME = 32;
 
   `include "tb_base.v"
 
-  reg [31:0] tx_data = 'h00000000;
-  wire tx_ready;
 
-  always @(posedge clk) begin
-    if (reset == 1'b1) begin
-      tx_data <= 'h00000000;
-    end else if (tx_ready == 1'b1) begin
-      tx_data <= tx_data + 1'b1;
-    end
-  end
-
-  reg sync = 1'b1;
+  reg [NUM_LINKS-1:0] sync = {NUM_LINKS{1'b1}};
   reg [31:0] counter = 'h00;
+  reg [31:0] tx_data = 'h00000000;
 
-  always @(posedge clk) begin
-    counter <= counter + 1'b1;
-    if (counter >= 'h10 && counter <= 'h30) begin
-      sync <= 1'b0;
-    end else begin
-      sync <= 1'b1;
-    end
-  end
-
+  wire tx_ready;
   wire [NUM_LANES-1:0] cfg_lanes_disable;
+  wire [NUM_LINKS-1:0] cfg_links_disable;
   wire [7:0] cfg_beats_per_multiframe;
   wire [7:0] cfg_octets_per_frame;
   wire [7:0] cfg_lmfc_offset;
@@ -85,17 +70,50 @@ module tx_tb;
   wire [7:0] cfg_mframes_per_ilas;
   wire cfg_disable_char_replacement;
   wire cfg_disable_scrambler;
-
   wire tx_ilas_config_rd;
   wire [1:0] tx_ilas_config_addr;
   wire [32*NUM_LANES-1:0] tx_ilas_config_data;
 
+  always @(posedge clk) begin
+    if (reset == 1'b1) begin
+      tx_data <= 'h00000000;
+    end else if (tx_ready == 1'b1) begin
+      tx_data <= tx_data + 1'b1;
+    end
+  end
+
+  /* Generate independent SYNCs
+  *
+  *  Each SYNC will be asserted/deasserted at different clock edges.
+  *  The assertion/deassertion order: first SYNC[0], ..., last SYNC[NUM_LINKS-1]
+  */
+  always @(posedge clk) begin
+    counter <= counter + 1'b1;
+  end
+
+  genvar i;
+  generate
+    for (i=1; i<=NUM_LINKS; i=i+1) begin: SYNC_GENERATOR
+      always @(posedge clk) begin
+        if (counter >= (32'h100 | (i << 4)) && counter <= (32'h300 | (i << 4))) begin
+          sync[i-1] <= 1'b0;
+        end else begin
+          sync[i-1] <= 1'b1;
+        end
+      end
+    end
+  endgenerate
+
+  // DUT with static configuration
+
   jesd204_tx_static_config #(
     .NUM_LANES(NUM_LANES),
+    .NUM_LINKS(NUM_LINKS),
     .OCTETS_PER_FRAME(OCTETS_PER_FRAME),
     .FRAMES_PER_MULTIFRAME(FRAMES_PER_MULTIFRAME)
   ) i_cfg (
     .cfg_lanes_disable(cfg_lanes_disable),
+    .cfg_links_disable(cfg_links_disable),
     .cfg_beats_per_multiframe(cfg_beats_per_multiframe),
     .cfg_octets_per_frame(cfg_octets_per_frame),
     .cfg_lmfc_offset(cfg_lmfc_offset),
@@ -114,12 +132,14 @@ module tx_tb;
   );
 
   jesd204_tx #(
-    .NUM_LANES(NUM_LANES)
+    .NUM_LANES(NUM_LANES),
+    .NUM_LINKS(NUM_LINKS)
   ) i_tx (
     .clk(clk),
     .reset(reset),
 
     .cfg_lanes_disable(cfg_lanes_disable),
+    .cfg_links_disable(cfg_links_disable),
     .cfg_beats_per_multiframe(cfg_beats_per_multiframe),
     .cfg_octets_per_frame(cfg_octets_per_frame),
     .cfg_lmfc_offset(cfg_lmfc_offset),
@@ -135,6 +155,8 @@ module tx_tb;
     .ilas_config_rd(tx_ilas_config_rd),
     .ilas_config_addr(tx_ilas_config_addr),
     .ilas_config_data(tx_ilas_config_data),
+
+    .ctrl_manual_sync_request (1'b0),
 
     .tx_ready(tx_ready),
     .tx_data({NUM_LANES{tx_data}}),

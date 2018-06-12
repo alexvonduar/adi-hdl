@@ -81,6 +81,11 @@ set_parameter_property NUM_LANES DISPLAY_NAME "Number of Lanes"
 set_parameter_property NUM_LANES ALLOWED_RANGES 1:8
 set_parameter_property NUM_LANES HDL_PARAMETER true
 
+add_parameter NUM_LINKS INTEGER 1
+set_parameter_property NUM_LINKS DISPLAY_NAME "Number of Links"
+set_parameter_property NUM_LINKS ALLOWED_RANGES 1:8
+set_parameter_property NUM_LINKS HDL_PARAMETER true
+
 # axi4 slave interface
 
 ad_ip_intf_s_axi s_axi_aclk s_axi_aresetn 14
@@ -123,10 +128,13 @@ add_interface_port config core_cfg_buffer_early_release buffer_early_release Out
 add_interface_port config core_cfg_disable_char_replacement disable_char_replacement Output 1
 add_interface_port config core_cfg_disable_scrambler disable_scrambler Output 1
 add_interface_port config core_cfg_lanes_disable lanes_disable Output NUM_LANES
+add_interface_port config core_cfg_links_disable links_disable Output NUM_LINKS
 add_interface_port config core_cfg_lmfc_offset lmfc_offset Output 8
 add_interface_port config core_cfg_octets_per_frame octets_per_frame Output 8
 add_interface_port config core_cfg_sysref_disable sysref_disable Output 1
 add_interface_port config core_cfg_sysref_oneshot sysref_oneshot Output 1
+add_interface_port config core_ctrl_err_statistics_reset err_statistics_reset Output 1
+add_interface_port config core_ctrl_err_statistics_mask err_statistics_mask Output 3
 
 # status interface
 
@@ -138,6 +146,7 @@ add_interface_port status core_status_ctrl_state ctrl_state Input 2
 add_interface_port status core_status_lane_cgs_state lane_cgs_state Input 2*NUM_LANES
 add_interface_port status core_status_lane_ifs_ready lane_ifs_ready Input NUM_LANES
 add_interface_port status core_status_lane_latency lane_latency Input 14*NUM_LANES
+add_interface_port status core_status_err_statistics_cnt err_statistics_cnt Input 32*NUM_LANES
 
 # event interface
 

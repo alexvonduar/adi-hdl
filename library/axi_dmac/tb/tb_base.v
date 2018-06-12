@@ -32,60 +32,45 @@
 //
 // ***************************************************************************
 // ***************************************************************************
-// This is the dac physical interface (drives samples from the low speed clock to the
-// dac clock domain.
 
-`timescale 1ns/100ps
+  reg clk = 1'b0;
+  reg [3:0] reset_shift = 4'b1111;
+  reg trigger_reset = 1'b0;
+  wire reset;
+  wire resetn = ~reset;
 
-module axi_ad9152_if (
+  reg failed = 1'b0;
 
-  // jesd interface
-  // tx_clk is (line-rate/40)
+  initial
+  begin
+    $dumpfile (VCD_FILE);
+    $dumpvars;
+`ifdef TIMEOUT
+    #`TIMEOUT
+`else
+    #100000
+`endif
+    if (failed == 1'b0)
+      $display("SUCCESS");
+    else
+      $display("FAILED");
+    $finish;
+  end
 
-  input                tx_clk,
-  output reg  [127:0]  tx_data,
-
-  // dac interface
-
-  output               dac_clk,
-  input                dac_rst,
-  input       [15:0]   dac_data_0_0,
-  input       [15:0]   dac_data_0_1,
-  input       [15:0]   dac_data_0_2,
-  input       [15:0]   dac_data_0_3,
-  input       [15:0]   dac_data_1_0,
-  input       [15:0]   dac_data_1_1,
-  input       [15:0]   dac_data_1_2,
-  input       [15:0]   dac_data_1_3);
-
-  // reorder data for the jesd links
-
-  assign dac_clk = tx_clk;
-
-  always @(posedge dac_clk) begin
-    if (dac_rst == 1'b1) begin
-      tx_data <= 128'd0;
+  always @(*) #10 clk <= ~clk;
+  always @(posedge clk) begin
+    if (trigger_reset == 1'b1) begin
+      reset_shift <= 3'b111;
     end else begin
-      tx_data[127:120] <= dac_data_1_3[ 7: 0];
-      tx_data[119:112] <= dac_data_1_2[ 7: 0];
-      tx_data[111:104] <= dac_data_1_1[ 7: 0];
-      tx_data[103: 96] <= dac_data_1_0[ 7: 0];
-      tx_data[ 95: 88] <= dac_data_1_3[15: 8];
-      tx_data[ 87: 80] <= dac_data_1_2[15: 8];
-      tx_data[ 79: 72] <= dac_data_1_1[15: 8];
-      tx_data[ 71: 64] <= dac_data_1_0[15: 8];
-      tx_data[ 63: 56] <= dac_data_0_3[ 7: 0];
-      tx_data[ 55: 48] <= dac_data_0_2[ 7: 0];
-      tx_data[ 47: 40] <= dac_data_0_1[ 7: 0];
-      tx_data[ 39: 32] <= dac_data_0_0[ 7: 0];
-      tx_data[ 31: 24] <= dac_data_0_3[15: 8];
-      tx_data[ 23: 16] <= dac_data_0_2[15: 8];
-      tx_data[ 15:  8] <= dac_data_0_1[15: 8];
-      tx_data[  7:  0] <= dac_data_0_0[15: 8];
+      reset_shift <= {reset_shift[2:0],1'b0};
     end
   end
 
-endmodule
+  assign reset = reset_shift[3];
 
-// ***************************************************************************
-// ***************************************************************************
+  task do_trigger_reset;
+  begin
+    @(posedge clk) trigger_reset <= 1'b1;
+    @(posedge clk) trigger_reset <= 1'b0;
+  end
+  endtask

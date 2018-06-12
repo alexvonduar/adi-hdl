@@ -43,7 +43,8 @@
 //
 
 module jesd204_rx #(
-  parameter NUM_LANES = 1
+  parameter NUM_LANES = 1,
+  parameter NUM_LINKS = 1
 ) (
   input clk,
   input reset,
@@ -60,7 +61,7 @@ module jesd204_rx #(
   output event_sysref_alignment_error,
   output event_sysref_edge,
 
-  output sync,
+  output [NUM_LINKS-1:0] sync,
 
   output phy_en_char_align,
 
@@ -70,6 +71,7 @@ module jesd204_rx #(
   output [3:0] rx_sof,
 
   input [NUM_LANES-1:0] cfg_lanes_disable,
+  input [NUM_LINKS-1:0] cfg_links_disable,
   input [7:0] cfg_beats_per_multiframe,
   input [7:0] cfg_octets_per_frame,
   input [7:0] cfg_lmfc_offset,
@@ -79,6 +81,11 @@ module jesd204_rx #(
   input [7:0] cfg_buffer_delay,
   input cfg_disable_char_replacement,
   input cfg_disable_scrambler,
+
+  input ctrl_err_statistics_reset,
+  input [2:0] ctrl_err_statistics_mask,
+
+  output [32*NUM_LANES-1:0] status_err_statistics_cnt,
 
   output [NUM_LANES-1:0] ilas_config_valid,
   output [NUM_LANES*2-1:0] ilas_config_addr,
@@ -225,12 +232,14 @@ jesd204_lmfc i_lmfc (
 );
 
 jesd204_rx_ctrl #(
-  .NUM_LANES(NUM_LANES)
+  .NUM_LANES(NUM_LANES),
+  .NUM_LINKS(NUM_LINKS)
 ) i_rx_ctrl (
   .clk(clk),
   .reset(reset),
 
   .cfg_lanes_disable(cfg_lanes_disable),
+  .cfg_links_disable(cfg_links_disable),
 
   .phy_ready(1'b1),
   .phy_en_char_align(phy_en_char_align),
@@ -300,6 +309,10 @@ for (i = 0; i < NUM_LANES; i = i + 1) begin: gen_lane
 
     .buffer_release_n(buffer_release_n),
     .buffer_ready_n(buffer_ready_n[i]),
+
+    .ctrl_err_statistics_reset(ctrl_err_statistics_reset),
+    .ctrl_err_statistics_mask(ctrl_err_statistics_mask),
+    .status_err_statistics_cnt(status_err_statistics_cnt[32*i+31:32*i]),
 
     .ilas_config_valid(ilas_config_valid[i]),
     .ilas_config_addr(ilas_config_addr[2*i+1:2*i]),

@@ -45,6 +45,7 @@
 module axi_jesd204_rx_tb;
   parameter VCD_FILE = "axi_jesd204_rx_regmap_tb.vcd";
   parameter NUM_LANES = 2;
+  parameter NUM_LINKS = 1;
 
   `define TIMEOUT 1000000
   `include "tb_base.v"
@@ -156,9 +157,10 @@ module axi_jesd204_rx_tb;
     for (i = 0; i < 1024; i = i + 1)
       expected_reg_mem[i] <= 'h00;
     /* Non zero power-on-reset values */
-    set_reset_reg_value('h00, 32'h00010061); /* PCORE version register */
+    set_reset_reg_value('h00, 32'h00010161); /* PCORE version register */
     set_reset_reg_value('h0c, 32'h32303452); /* PCORE magic register */
     set_reset_reg_value('h10, NUM_LANES); /* Number of lanes */
+    set_reset_reg_value('h18, NUM_LINKS); /* Number of links */
     set_reset_reg_value('h40, 32'h00000100); /* Elastic buffer size */
     set_reset_reg_value('h14, 'h2); /* Datapath width */
     set_reset_reg_value('hc0, 'h1); /* Core reset */
@@ -278,6 +280,10 @@ module axi_jesd204_rx_tb;
     write_reg_and_update('h214, 32'h03);
     check_all_registers();
 
+    /* Check links enable */
+    write_reg_and_update('h218, {NUM_LINKS{1'b1}});
+    check_all_registers();
+
     /* Check JESD RX configuration */
     write_reg_and_update('h240, 32'h103fc);
     check_all_registers();
@@ -287,10 +293,10 @@ module axi_jesd204_rx_tb;
     check_all_registers();
 
     /* Should be read-only when core is out of reset */
-    invert_register('h200);
-    invert_register('h204);
-    invert_register('h210);
-    invert_register('h240);
+    invert_register('h200); /* lanes enable */
+    invert_register('h210); /* octets per frame, beats per multiframe */
+    invert_register('h218); /* links enable */
+    invert_register('h240); /* char replacement, scrambler */
 
     check_all_registers();
 
@@ -308,7 +314,8 @@ module axi_jesd204_rx_tb;
   end
 
   axi_jesd204_rx #(
-    .NUM_LANES(NUM_LANES)
+    .NUM_LANES(NUM_LANES),
+    .NUM_LINKS(NUM_LINKS)
   ) i_axi (
     .s_axi_aclk(s_axi_aclk),
     .s_axi_aresetn(s_axi_aresetn),
@@ -341,6 +348,10 @@ module axi_jesd204_rx_tb;
 
     .core_event_sysref_alignment_error(1'b0),
     .core_event_sysref_edge(1'b0),
+
+    .core_status_err_statistics_cnt(),
+    .core_ctrl_err_statistics_mask(),
+    .core_ctrl_err_statistics_reset(),
 
     .core_status_ctrl_state(2'b00),
     .core_status_lane_cgs_state(4'b0000),

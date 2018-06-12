@@ -133,7 +133,6 @@ module axi_ad9361 #(
   output          adc_valid_q1,
   output  [15:0]  adc_data_q1,
   input           adc_dovf,
-  input           adc_dunf,
   output          adc_r1_mode,
 
   output          dac_enable_i0,
@@ -148,7 +147,6 @@ module axi_ad9361 #(
   output          dac_enable_q1,
   output          dac_valid_q1,
   input   [15:0]  dac_data_q1,
-  input           dac_dovf,
   input           dac_dunf,
   output          dac_r1_mode,
 
@@ -603,7 +601,6 @@ module axi_ad9361 #(
     .adc_valid_q1 (adc_valid_q1_s),
     .adc_data_q1 (adc_data_q1_s),
     .adc_dovf (adc_dovf),
-    .adc_dunf (adc_dunf),
     .up_adc_gpio_in (up_adc_gpio_in),
     .up_adc_gpio_out (up_adc_gpio_out),
     .up_pps_rcounter (up_pps_rcounter_s),
@@ -667,7 +664,6 @@ module axi_ad9361 #(
     .dac_enable_q1 (dac_enable_q1),
     .dac_valid_q1 (dac_valid_q1_s),
     .dac_data_q1 (dac_data_q1),
-    .dac_dovf(dac_dovf),
     .dac_dunf(dac_dunf),
     .up_pps_rcounter (up_pps_rcounter_s),
     .up_pps_status (up_pps_status_s),

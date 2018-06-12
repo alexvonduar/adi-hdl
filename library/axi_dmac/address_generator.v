@@ -77,7 +77,6 @@ localparam MAX_LENGTH = {BEATS_PER_BURST_WIDTH{1'b1}};
 assign burst = 2'b01;
 assign prot = 3'b000;
 assign cache = 4'b0011;
-assign len = length;
 assign size = DMA_DATA_WIDTH == 1024 ? 3'b111 :
               DMA_DATA_WIDTH ==  512 ? 3'b110 :
               DMA_DATA_WIDTH ==  256 ? 3'b101 :
@@ -90,6 +89,7 @@ reg [LENGTH_WIDTH-1:0] length = 'h0;
 reg [DMA_ADDR_WIDTH-BYTES_PER_BEAT_WIDTH-1:0] address = 'h00;
 reg [BEATS_PER_BURST_WIDTH-1:0] last_burst_len = 'h00;
 assign addr = {address, {BYTES_PER_BEAT_WIDTH{1'b0}}};
+assign len = length;
 
 reg addr_valid_d1;
 reg last = 1'b0;
@@ -109,6 +109,7 @@ end
 
 always @(posedge clk) begin
   if (addr_valid == 1'b0) begin
+    last <= eot;
     if (eot == 1'b1)
       length <= last_burst_len;
     else
@@ -117,17 +118,16 @@ always @(posedge clk) begin
 end
 
 always @(posedge clk) begin
-  if (resetn == 1'b0) begin
-    last <= 1'b0;
-  end else if (addr_valid == 1'b0) begin
-    last <= eot;
+  if (req_ready == 1'b1) begin
+    address <= req_address;
+    last_burst_len <= req_last_burst_length;
+  end else if (addr_valid == 1'b1 && addr_ready == 1'b1) begin
+    address <= address + MAX_BEATS_PER_BURST;
   end
 end
 
 always @(posedge clk) begin
   if (resetn == 1'b0) begin
-    address <= 'h00;
-    last_burst_len <= 'h00;
     req_ready <= 1'b1;
     addr_valid <= 1'b0;
   end else begin
@@ -135,13 +135,10 @@ always @(posedge clk) begin
       req_ready <= 1'b1;
     end else if (req_ready) begin
       if (req_valid && enable) begin
-        address <= req_address;
         req_ready <= 1'b0;
-        last_burst_len <= req_last_burst_length;
       end
     end else begin
       if (addr_valid && addr_ready) begin
-        address <= address + MAX_BEATS_PER_BURST;
         addr_valid <= 1'b0;
         if (last)
           req_ready <= 1'b1;

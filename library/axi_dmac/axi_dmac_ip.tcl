@@ -8,6 +8,8 @@ adi_ip_files axi_dmac [list \
   "$ad_hdl_dir/library/common/up_axi.v" \
   "inc_id.h" \
   "resp.h" \
+  "axi_dmac_regmap.v" \
+  "axi_dmac_regmap_request.v" \
   "address_generator.v" \
   "data_mover.v" \
   "request_arb.v" \
@@ -189,6 +191,12 @@ foreach intf [ipx::get_bus_interfaces m_*_axi -of_objects $cc] {
 }
 
 set_property -dict [list \
+	"value_validation_type" "list" \
+	"value_validation_list" "2 4 8 16 32" \
+ ] \
+ [ipx::get_user_parameters FIFO_SIZE -of_objects $cc]
+
+set_property -dict [list \
 	"value_validation_type" "range_long" \
 	"value_validation_range_minimum" "8" \
 	"value_validation_range_maximum" "32" \
@@ -309,7 +317,8 @@ set_property -dict [list \
 set p [ipgui::get_guiparamspec -name "FIFO_SIZE" -component $cc]
 ipgui::move_param -component $cc -order 2 $p -parent $general_group
 set_property -dict [list \
-	"display_name" "FIFO Size (In Bursts)" \
+	"widget" "comboBox" \
+	"display_name" "Store-and-Forward Memory Size (In Bursts)" \
 ] $p
 
 set p [ipgui::get_guiparamspec -name "MAX_BYTES_PER_BURST" -component $cc]
