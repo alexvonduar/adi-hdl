@@ -1,6 +1,6 @@
 // ***************************************************************************
 // ***************************************************************************
-// Copyright 2018 (c) Analog Devices, Inc. All rights reserved.
+// Copyright 2014 - 2018 (c) Analog Devices, Inc. All rights reserved.
 //
 // In this HDL repository, there are many different and unique modules, consisting
 // of various HDL (Verilog or VHDL) components. The individual modules are
@@ -35,14 +35,16 @@
 
 `timescale 1ns/100ps
 
-module dmac_dma_write_tb;
+module dmac_dma_write_shutdown_tb;
   parameter VCD_FILE = {`__FILE__,"cd"};
 
   `include "tb_base.v"
 
-  reg req_valid = 1'b1;
-  wire req_ready;
-  reg [23:0] req_length = 'h03;
+  localparam TRANSFER_ADDR = 32'h80000000;
+  localparam TRANSFER_LEN = 24'h2ff;
+
+  reg fifo_clk = 1'b0;
+
   wire awvalid;
   wire awready;
   wire [31:0] awaddr;
@@ -58,20 +60,14 @@ module dmac_dma_write_tb;
   wire [3:0] wstrb;
   wire [31:0] wdata;
 
-  reg [31:0] fifo_wr_din = 'b0;
-  reg fifo_wr_rq = 'b0;
-  wire fifo_wr_xfer_req;
-
   wire bready;
   wire bvalid;
   wire [1:0] bresp;
 
-  always @(posedge clk) begin
-    if (reset != 1'b1 && req_ready == 1'b1) begin
-      req_valid <= 1'b1;
-      req_length <= req_length + 'h4;
-    end
-  end
+  wire [11:0] dbg_status;
+
+  /* Twice as fast as the AXI clk so the FIFO fills up */
+  always @(*) #5 fifo_clk <= ~fifo_clk;
 
   axi_write_slave #(
     .DATA_WIDTH(32)
@@ -99,9 +95,25 @@ module dmac_dma_write_tb;
     .bresp(bresp)
   );
 
+  reg ctrl_enable = 1'b0;
+
+  initial begin
+    #1000
+    @(posedge clk) ctrl_enable <= 1'b1;
+    #3000
+    @(posedge clk) ctrl_enable <= 1'b0;
+  end
+
+  always @(posedge clk) begin
+    failed <= ctrl_enable == 1'b0 && (
+        dbg_status !== 12'h701 ||
+        i_write_slave.i_axi_slave.req_fifo_level !== 'h00);
+  end
+
   axi_dmac_transfer #(
     .DMA_DATA_WIDTH_SRC(32),
-    .DMA_DATA_WIDTH_DEST(32)
+    .DMA_DATA_WIDTH_DEST(32),
+    .FIFO_SIZE(8)
   ) i_transfer (
     .m_dest_axi_aclk (clk),
     .m_dest_axi_aresetn(resetn),
@@ -128,50 +140,29 @@ module dmac_dma_write_tb;
     .ctrl_clk(clk),
     .ctrl_resetn(resetn),
 
-    .ctrl_enable(1'b1),
+    .ctrl_enable(ctrl_enable),
     .ctrl_pause(1'b0),
 
-    .req_eot(eot),
+    .req_eot(),
 
-    .req_valid(req_valid),
-    .req_ready(req_ready),
-    .req_dest_address(30'h7e09000),
-    .req_x_length(req_length),
+    .req_valid(1'b1),
+    .req_ready(),
+    .req_dest_address(TRANSFER_ADDR[31:2]),
+    .req_src_address(TRANSFER_ADDR[31:2]),
+    .req_x_length(TRANSFER_LEN),
     .req_y_length(24'h00),
     .req_dest_stride(24'h00),
     .req_src_stride(24'h00),
     .req_sync_transfer_start(1'b0),
+    .req_last(1'b0),
 
-    .fifo_wr_clk(clk),
-    .fifo_wr_en(fifo_wr_en),
-    .fifo_wr_din(fifo_wr_din),
-    .fifo_wr_overflow(fifo_wr_overflow),
+    .fifo_wr_clk(fifo_clk),
+    .fifo_wr_en(1'b1),
+    .fifo_wr_din(32'h00),
     .fifo_wr_sync(1'b1),
-    .fifo_wr_xfer_req(fifo_wr_xfer_req)
+    .fifo_wr_xfer_req(),
+
+    .dbg_status(dbg_status)
   );
-
-  always @(posedge clk) begin
-    if (reset) begin
-      fifo_wr_din <= 'b0;
-      fifo_wr_rq <= 'b0;
-    end else begin
-      if (fifo_wr_en) begin
-        fifo_wr_din <= fifo_wr_din + 'h4;
-      end
-      fifo_wr_rq <= (($random % 4) == 0);
-    end
-  end
-
-  assign fifo_wr_en = fifo_wr_rq & fifo_wr_xfer_req;
-
-  always @(posedge clk) begin
-    if (reset) begin
-      failed <= 'b0;
-    end else begin
-      failed <= failed |
-                i_write_slave.failed |
-                fifo_wr_overflow;
-    end
-  end
 
 endmodule

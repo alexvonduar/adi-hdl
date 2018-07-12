@@ -1,6 +1,6 @@
 // ***************************************************************************
 // ***************************************************************************
-// Copyright 2018 (c) Analog Devices, Inc. All rights reserved.
+// Copyright 2014 - 2018 (c) Analog Devices, Inc. All rights reserved.
 //
 // In this HDL repository, there are many different and unique modules, consisting
 // of various HDL (Verilog or VHDL) components. The individual modules are
@@ -35,17 +35,15 @@
 
 `timescale 1ns/100ps
 
-module dmac_dma_read_tb;
+module dmac_dma_read_shutdown_tb;
   parameter VCD_FILE = {`__FILE__,"cd"};
 
   `include "tb_base.v"
 
   localparam TRANSFER_ADDR = 32'h80000000;
-  localparam TRANSFER_LEN = 24'h203;
+  localparam TRANSFER_LEN = 24'h2ff;
 
-  reg req_valid = 1'b1;
-  wire req_ready;
-  reg [23:0] req_length = 'h03;
+  reg fifo_clk = 1'b0;
 
   wire awvalid;
   wire awready;
@@ -62,16 +60,12 @@ module dmac_dma_read_tb;
   wire [1:0] rresp;
   wire [31:0] rdata;
 
-  always @(posedge clk) begin
-    if (reset != 1'b1 && req_ready == 1'b1) begin
-      req_valid <= 1'b1;
-      req_length <= req_length + 4;
-    end
-  end
+  /* Twice as fast as the AXI clk so we have lots of read requests */
+  always @(*) #5 fifo_clk <= ~fifo_clk;
 
   axi_read_slave #(
     .DATA_WIDTH(32)
-  ) i_write_slave (
+  ) i_read_slave (
     .clk(clk),
     .reset(reset),
 
@@ -91,13 +85,26 @@ module dmac_dma_read_tb;
     .rlast(rlast)
   );
 
-  wire fifo_rd_en = 1'b1;
-  wire fifo_rd_valid;
-  wire fifo_rd_underflow;
-  wire [31:0] fifo_rd_dout;
-  reg [31:0] fifo_rd_dout_cmp = TRANSFER_ADDR;
-  reg fifo_rd_dout_mismatch = 1'b0;
-  reg [31:0] fifo_rd_dout_limit = 'h0;
+  wire [11:0] dbg_status;
+
+  reg ctrl_enable = 1'b0;
+
+  initial begin
+    #1000
+    @(posedge clk) ctrl_enable <= 1'b1;
+    #3000
+    @(posedge clk) ctrl_enable <= 1'b0;
+  end
+
+  always @(posedge clk) begin
+    /*
+     * When disabled the DMA should eventually end up in an idle state and all
+     * requests that were sent out need to be accepted
+     */
+    failed <= ctrl_enable == 1'b0 && (
+      dbg_status !== 12'h701 ||
+      i_read_slave.i_axi_slave.req_fifo_level !== 'h00);
+  end
 
   axi_dmac_transfer #(
     .DMA_TYPE_SRC(0),
@@ -105,8 +112,8 @@ module dmac_dma_read_tb;
     .DMA_DATA_WIDTH_SRC(32),
     .DMA_DATA_WIDTH_DEST(32),
     .FIFO_SIZE(8)
-  ) transfer (
-    .m_src_axi_aclk(clk),
+  ) i_transfer (
+    .m_src_axi_aclk (clk),
     .m_src_axi_aresetn(resetn),
 
     .m_axi_arvalid(arvalid),
@@ -127,51 +134,29 @@ module dmac_dma_read_tb;
     .ctrl_clk(clk),
     .ctrl_resetn(resetn),
 
-    .ctrl_enable(1'b1),
+    .ctrl_enable(ctrl_enable),
     .ctrl_pause(1'b0),
 
-    .req_eot(eot),
+    .req_eot(),
 
-    .req_valid(req_valid),
-    .req_ready(req_ready),
+    .req_valid(1'b1),
+    .req_ready(),
     .req_dest_address(TRANSFER_ADDR[31:2]),
     .req_src_address(TRANSFER_ADDR[31:2]),
-    .req_x_length(req_length),
+    .req_x_length(TRANSFER_LEN),
     .req_y_length(24'h00),
     .req_dest_stride(24'h00),
     .req_src_stride(24'h00),
     .req_sync_transfer_start(1'b0),
+    .req_last(1'b0),
 
-    .fifo_rd_clk(clk),
-    .fifo_rd_en(fifo_rd_en),
-    .fifo_rd_valid(fifo_rd_valid),
-    .fifo_rd_underflow(fifo_rd_underflow),
-    .fifo_rd_dout(fifo_rd_dout)
+    .fifo_rd_clk(fifo_clk),
+    .fifo_rd_en(1'b1),
+    .fifo_rd_valid(),
+    .fifo_rd_underflow(),
+    .fifo_rd_dout(),
+
+    .dbg_status(dbg_status)
   );
-
-  always @(posedge clk) begin
-    if (reset == 1'b1) begin
-      fifo_rd_dout_cmp <= TRANSFER_ADDR;
-      fifo_rd_dout_mismatch <= 1'b0;
-    end else begin
-      fifo_rd_dout_mismatch <= 1'b0;
-
-      if (fifo_rd_valid == 1'b1) begin
-        if (fifo_rd_dout_cmp < TRANSFER_ADDR + fifo_rd_dout_limit) begin
-          fifo_rd_dout_cmp <= (fifo_rd_dout_cmp + 'h4);
-        end else begin
-          fifo_rd_dout_cmp <= TRANSFER_ADDR;
-          fifo_rd_dout_limit <= fifo_rd_dout_limit + 'h4;
-        end
-        if (fifo_rd_dout_cmp != fifo_rd_dout) begin
-          fifo_rd_dout_mismatch <= 1'b1;
-        end
-      end
-    end
-  end
-
-  always @(posedge clk) begin
-    failed <= failed | fifo_rd_dout_mismatch;
-  end
 
 endmodule

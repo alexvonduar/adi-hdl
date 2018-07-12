@@ -40,6 +40,7 @@ module axi_dmac_regmap #(
   parameter BYTES_PER_BEAT_WIDTH_SRC = 1,
   parameter DMA_AXI_ADDR_WIDTH = 32,
   parameter DMA_LENGTH_WIDTH = 24,
+  parameter DMA_LENGTH_ALIGN = 3,
   parameter DMA_CYCLIC = 0,
   parameter HAS_DEST_ADDR = 1,
   parameter HAS_SRC_ADDR = 1,
@@ -98,12 +99,12 @@ module axi_dmac_regmap #(
   // Debug interface
   input [DMA_AXI_ADDR_WIDTH-1:0] dbg_src_addr,
   input [DMA_AXI_ADDR_WIDTH-1:0] dbg_dest_addr,
-  input [7:0] dbg_status,
+  input [11:0] dbg_status,
   input [31:0] dbg_ids0,
   input [31:0] dbg_ids1
 );
 
-localparam PCORE_VERSION = 'h00040062;
+localparam PCORE_VERSION = 'h00040161;
 
 // Register interface signals
 reg [31:0] up_rdata = 32'h00;
@@ -210,6 +211,7 @@ axi_dmac_regmap_request #(
   .BYTES_PER_BEAT_WIDTH_SRC(BYTES_PER_BEAT_WIDTH_SRC),
   .DMA_AXI_ADDR_WIDTH(DMA_AXI_ADDR_WIDTH),
   .DMA_LENGTH_WIDTH(DMA_LENGTH_WIDTH),
+  .DMA_LENGTH_ALIGN(DMA_LENGTH_ALIGN),
   .DMA_CYCLIC(DMA_CYCLIC),
   .HAS_DEST_ADDR(HAS_DEST_ADDR),
   .HAS_SRC_ADDR(HAS_SRC_ADDR),

@@ -45,8 +45,6 @@ module dmac_src_axi_stream #(
 
   input enable,
   output enabled,
-  input sync_id,
-  output sync_id_ret,
 
   input [ID_WIDTH-1:0] request_id,
   output [ID_WIDTH-1:0] response_id,
@@ -59,9 +57,9 @@ module dmac_src_axi_stream #(
   input s_axis_last,
   output s_axis_xfer_req,
 
-  input fifo_ready,
   output fifo_valid,
   output [S_AXIS_DATA_WIDTH-1:0] fifo_data,
+  output fifo_last,
 
   input req_valid,
   output req_ready,
@@ -70,72 +68,16 @@ module dmac_src_axi_stream #(
   input req_xlast
 );
 
-reg needs_sync = 1'b0;
-reg transfer_abort = 1'b0;
-reg req_xlast_d = 1'b0;
-
-wire [S_AXIS_DATA_WIDTH-1:0] data;
-wire sync = s_axis_user[0];
-wire has_sync = ~needs_sync | sync;
-wire data_valid;
-wire data_ready;
-wire fifo_last;
-
-assign sync_id_ret = sync_id;
-assign data = transfer_abort == 1'b1 ? {S_AXIS_DATA_WIDTH{1'b0}} : s_axis_data;
-assign data_valid = (s_axis_valid & has_sync) | transfer_abort;
-assign s_axis_ready = data_ready & ~transfer_abort;
-
-always @(posedge s_axis_aclk)
-begin
-  if (s_axis_aresetn == 1'b0) begin
-    needs_sync <= 1'b0;
-  end else begin
-    if (s_axis_valid && s_axis_ready && sync) begin
-      needs_sync <= 1'b0;
-    end else if (req_valid && req_ready) begin
-      needs_sync <= req_sync_transfer_start;
-    end
-  end
-end
-
-/*
- * A 'last' on the external interface indicates the end of an packet. If such a
- * 'last' indicator is observed before the end of the current transfer stop
- * accepting data on the external interface and complete the current transfer by
- * writing zeros to the buffer.
- */
-always @(posedge s_axis_aclk) begin
-  if (s_axis_aresetn == 1'b0) begin
-    transfer_abort <= 1'b0;
-  end else if (data_ready == 1'b1 && data_valid == 1'b1) begin
-    if (fifo_last == 1'b1 && req_xlast_d == 1'b1) begin
-      transfer_abort <= 1'b0;
-    end else if (s_axis_last == 1'b1) begin
-      transfer_abort <= 1'b1;
-    end
-  end
-end
-
-always @(posedge s_axis_aclk) begin
-  if(req_ready == 1'b1) begin
-    req_xlast_d <= req_xlast;
-  end
-end
+assign enabled = enable;
 
 dmac_data_mover # (
   .ID_WIDTH(ID_WIDTH),
   .DATA_WIDTH(S_AXIS_DATA_WIDTH),
-  .DISABLE_WAIT_FOR_ID(0),
   .BEATS_PER_BURST_WIDTH(BEATS_PER_BURST_WIDTH),
-  .LAST(1)
+  .ALLOW_ABORT(1)
 ) i_data_mover (
   .clk(s_axis_aclk),
   .resetn(s_axis_aresetn),
-
-  .enable(enable),
-  .enabled(enabled),
-  .sync_id(sync_id),
 
   .xfer_req(s_axis_xfer_req),
 
@@ -146,11 +88,15 @@ dmac_data_mover # (
   .req_valid(req_valid),
   .req_ready(req_ready),
   .req_last_burst_length(req_last_burst_length),
+  .req_sync_transfer_start(req_sync_transfer_start),
+  .req_xlast(req_xlast),
 
-  .s_axi_ready(data_ready),
-  .s_axi_valid(data_valid),
-  .s_axi_data(data),
-  .m_axi_ready(fifo_ready),
+  .s_axi_valid(s_axis_valid),
+  .s_axi_ready(s_axis_ready),
+  .s_axi_data(s_axis_data),
+  .s_axi_last(s_axis_last),
+  .s_axi_sync(s_axis_user[0]),
+
   .m_axi_valid(fifo_valid),
   .m_axi_data(fifo_data),
   .m_axi_last(fifo_last)

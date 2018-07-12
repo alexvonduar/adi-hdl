@@ -5,11 +5,17 @@ source $ad_hdl_dir/library/scripts/adi_ip.tcl
 
 adi_ip_create axi_dmac
 adi_ip_files axi_dmac [list \
+  "$ad_hdl_dir/library/common/ad_mem.v" \
   "$ad_hdl_dir/library/common/up_axi.v" \
-  "inc_id.h" \
-  "resp.h" \
+  "inc_id.vh" \
+  "resp.vh" \
+  "axi_dmac_burst_memory.v" \
   "axi_dmac_regmap.v" \
   "axi_dmac_regmap_request.v" \
+  "axi_dmac_reset_manager.v" \
+  "axi_dmac_resize_dest.v" \
+  "axi_dmac_resize_src.v" \
+  "axi_dmac_transfer.v" \
   "address_generator.v" \
   "data_mover.v" \
   "request_arb.v" \
@@ -27,15 +33,16 @@ adi_ip_files axi_dmac [list \
   "response_generator.v" \
   "axi_dmac.v" \
   "axi_dmac_constr.ttcl" \
+  "axi_dmac_pkg_sv.ttcl" \
   "bd/bd.tcl" ]
 
 adi_ip_properties axi_dmac
 adi_ip_infer_mm_interfaces axi_dmac
 adi_ip_ttcl axi_dmac "axi_dmac_constr.ttcl"
+adi_ip_sim_ttcl axi_dmac "axi_dmac_pkg_sv.ttcl"
 adi_ip_bd axi_dmac "bd/bd.tcl"
 
 adi_ip_add_core_dependencies { \
-	analog.com:user:util_axis_resize:1.0 \
 	analog.com:user:util_axis_fifo:1.0 \
 	analog.com:user:util_cdc:1.0 \
 }
@@ -72,6 +79,8 @@ adi_set_bus_dependency "m_axis" "m_axis" \
 	"(spirit:decode(id('MODELPARAM_VALUE.DMA_TYPE_DEST')) = 1)"
 adi_set_ports_dependency "fifo_rd" \
 	"(spirit:decode(id('MODELPARAM_VALUE.DMA_TYPE_DEST')) = 2)"
+adi_set_ports_dependency "dest_diag_level_bursts" \
+	"(spirit:decode(id('MODELPARAM_VALUE.ENABLE_DIAGNOSTICS_IF')) = 1)"
 
 # These are in the design to keep the Altera tools happy which can't handle
 # uni-directional AXI interfaces. The Xilinx tools can and do a better job when
@@ -123,7 +132,6 @@ lappend dummy_axi_ports \
 	"m_src_axi_arid" \
 	"m_src_axi_arlock" \
 	"m_src_axi_rid" \
-	"m_src_axi_rlast" \
 	"m_src_axi_awid" \
 	"m_src_axi_awlock" \
 	"m_src_axi_wid" \
@@ -213,6 +221,7 @@ foreach {k v} { \
 		"AXI_SLICE_SRC" "false" \
 		"AXI_SLICE_DEST" "false" \
 		"DISABLE_DEBUG_REGISTERS" "false" \
+    "ENABLE_DIAGNOSTICS_IF" "false" \
 	} { \
 	set_property -dict [list \
 			"value_format" "bool" \
@@ -370,6 +379,12 @@ set p [ipgui::get_guiparamspec -name "DISABLE_DEBUG_REGISTERS" -component $cc]
 ipgui::move_param -component $cc -order 0 $p -parent $dbg_group
 set_property -dict [list \
 	"display_name" "Disable Debug Registers" \
+] $p
+
+set p [ipgui::get_guiparamspec -name "ENABLE_DIAGNOSTICS_IF" -component $cc]
+ipgui::move_param -component $cc -order 1 $p -parent $dbg_group
+set_property -dict [list \
+	"display_name" "Enable Diagnostics Interface" \
 ] $p
 
 ipgui::remove_param -component $cc [ipgui::get_guiparamspec -name "DMA_AXI_ADDR_WIDTH" -component $cc]

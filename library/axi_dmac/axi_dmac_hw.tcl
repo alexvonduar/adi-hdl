@@ -16,18 +16,18 @@ set_module_property VALIDATION_CALLBACK axi_dmac_validate
 
 ad_ip_files axi_dmac [list \
   $ad_hdl_dir/library/util_cdc/sync_bits.v \
-  $ad_hdl_dir/library/util_cdc/sync_gray.v \
   $ad_hdl_dir/library/common/up_axi.v \
-  $ad_hdl_dir/library/util_axis_resize/util_axis_resize.v \
   $ad_hdl_dir/library/util_axis_fifo/util_axis_fifo.v \
-  $ad_hdl_dir/library/util_axis_fifo/address_gray.v \
-  $ad_hdl_dir/library/util_axis_fifo/address_gray_pipelined.v \
-  $ad_hdl_dir/library/util_axis_fifo/address_sync.v \
   $ad_hdl_dir/library/common/ad_mem.v \
-  inc_id.h \
-  resp.h \
+  inc_id.vh \
+  resp.vh \
+  axi_dmac_burst_memory.v \
   axi_dmac_regmap.v \
   axi_dmac_regmap_request.v \
+  axi_dmac_reset_manager.v \
+  axi_dmac_resize_dest.v \
+  axi_dmac_resize_src.v \
+  axi_dmac_transfer.v \
   address_generator.v \
   data_mover.v \
   request_arb.v \
@@ -48,7 +48,7 @@ ad_ip_files axi_dmac [list \
 ]
 
 # Disable dual-clock RAM read-during-write behaviour warning.
-set_qip_strings { "set_instance_assignment -name MESSAGE_DISABLE 276027 -entity util_axis_fifo" }
+set_qip_strings { "set_instance_assignment -name MESSAGE_DISABLE 276027 -entity axi_dmac_burst_memory" }
 
 # parameters
 
@@ -103,6 +103,12 @@ foreach {suffix group} { \
   set_parameter_property DMA_DATA_WIDTH_$suffix HDL_PARAMETER true
   set_parameter_property DMA_DATA_WIDTH_$suffix ALLOWED_RANGES {16 32 64 128 256 512 1024}
   set_parameter_property DMA_DATA_WIDTH_$suffix GROUP $group
+
+  add_parameter USE_TLAST_$suffix INTEGER 0
+  set_parameter_property USE_TLAST_$suffix DISPLAY_NAME "Use TLAST"
+  set_parameter_property USE_TLAST_$suffix HDL_PARAMETER false
+  set_parameter_property USE_TLAST_$suffix DISPLAY_HINT boolean
+  set_parameter_property USE_TLAST_$suffix GROUP $group
 
   add_parameter AXI_SLICE_$suffix INTEGER 0
   set_parameter_property AXI_SLICE_$suffix DISPLAY_NAME "Insert Register Slice"
@@ -262,6 +268,13 @@ proc axi_dmac_validate {} {
     set_parameter_property DMA_AXI_PROTOCOL_$suffix VISIBLE $show_axi_protocol
   }
 
+  foreach suffix {SRC DEST} {
+    if {[get_parameter_value DMA_TYPE_$suffix] == 1} {
+      set_parameter_property USE_TLAST_$suffix VISIBLE true
+    } else {
+      set_parameter_property USE_TLAST_$suffix VISIBLE false
+    }
+  }
   set_parameter_property MAX_BYTES_PER_BURST ALLOWED_RANGES "1:$max_burst"
 }
 
@@ -297,6 +310,7 @@ ad_alt_intf clock   s_axis_aclk       input   1                       clk
 ad_alt_intf signal  s_axis_valid      input   1                       valid
 ad_alt_intf signal  s_axis_data       input   DMA_DATA_WIDTH_SRC      data
 ad_alt_intf signal  s_axis_ready      output  1                       ready
+ad_alt_intf signal  s_axis_last       input   1                       last
 ad_alt_intf signal  s_axis_xfer_req   output  1                       xfer_req
 ad_alt_intf signal  s_axis_user       input   1                       user
 
@@ -368,7 +382,9 @@ proc add_axi_master_interface {axi_type port suffix} {
     set_port_property ${port}_arlock TERMINATION true
     set_port_property ${port}_rid TERMINATION true
     set_port_property ${port}_bid TERMINATION true
-    set_port_property ${port}_rlast TERMINATION true
+    if {$port == "m_dest_axi"} {
+      set_port_property ${port}_rlast TERMINATION true
+    }
   }
 }
 proc axi_dmac_elaborate {} {
@@ -409,16 +425,27 @@ proc axi_dmac_elaborate {} {
 	  if_m_axis_last if_m_axis_xfer_req
   }
 
+  if {[get_parameter_value DMA_TYPE_DEST] == 1 &&
+      [get_parameter_value USE_TLAST_DEST] == 0} {
+    set_port_property m_axis_last termination true
+  }
+
   if {[get_parameter_value DMA_TYPE_SRC] != 1} {
     lappend disabled_intfs \
       if_s_axis_aclk if_s_axis_valid if_s_axis_data if_s_axis_ready \
-	  if_s_axis_xfer_req if_s_axis_user
+	  if_s_axis_xfer_req if_s_axis_user if_s_axis_last
   }
 
   if {[get_parameter_value DMA_TYPE_SRC] == 1 &&
       [get_parameter_value SYNC_TRANSFER_START] == 0} {
     set_port_property s_axis_user termination true
     set_port_property s_axis_user termination_value 1
+  }
+
+  if {[get_parameter_value DMA_TYPE_SRC] == 1 &&
+      [get_parameter_value USE_TLAST_SRC] == 0} {
+    set_port_property s_axis_last termination true
+    set_port_property s_axis_last termination_value 0
   }
 
   # fifo destination/source
@@ -441,6 +468,10 @@ proc axi_dmac_elaborate {} {
     set_port_property fifo_wr_sync termination_value 1
   }
 
+  if {[get_parameter_value ENABLE_DIAGNOSTICS_IF] != 1} {
+    lappend disabled_intfs diagnostics_if
+  }
+
   foreach intf $disabled_intfs {
     set_interface_property $intf ENABLED false
   }
@@ -453,3 +484,12 @@ set_parameter_property DISABLE_DEBUG_REGISTERS DISPLAY_NAME "Disable debug regis
 set_parameter_property DISABLE_DEBUG_REGISTERS DISPLAY_HINT boolean
 set_parameter_property DISABLE_DEBUG_REGISTERS HDL_PARAMETER false
 set_parameter_property DISABLE_DEBUG_REGISTERS GROUP $group
+
+add_parameter ENABLE_DIAGNOSTICS_IF INTEGER 0
+set_parameter_property ENABLE_DIAGNOSTICS_IF DISPLAY_NAME "Enable Diagnostics Interface"
+set_parameter_property ENABLE_DIAGNOSTICS_IF DISPLAY_HINT boolean
+set_parameter_property ENABLE_DIAGNOSTICS_IF HDL_PARAMETER true
+set_parameter_property ENABLE_DIAGNOSTICS_IF GROUP $group
+
+add_interface diagnostics_if conduit end
+add_interface_port diagnostics_if dest_diag_level_bursts dest_diag_level_bursts Output "8"

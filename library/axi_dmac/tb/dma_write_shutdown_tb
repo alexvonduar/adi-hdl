@@ -1,8 +1,9 @@
 #!/bin/bash
 
-SOURCE="dma_write_tb.v"
+SOURCE="$0.v"
 SOURCE+=" axi_write_slave.v axi_slave.v"
-SOURCE+=" ../axi_dmac_transfer.v ../2d_transfer.v ../request_arb.v ../request_generator.v ../splitter.v"
+SOURCE+=" ../axi_dmac_transfer.v ../request_arb.v ../request_generator.v ../splitter.v"
+SOURCE+=" ../2d_transfer.v"
 SOURCE+=" ../axi_dmac_resize_src.v ../axi_dmac_resize_dest.v"
 SOURCE+=" ../axi_dmac_burst_memory.v"
 SOURCE+=" ../axi_dmac_reset_manager.v ../data_mover.v ../axi_register_slice.v"

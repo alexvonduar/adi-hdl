@@ -52,8 +52,6 @@ module dmac_dest_mm_axi #(
 
   input                               enable,
   output                              enabled,
-  input                               sync_id,
-  output                              sync_id_ret,
 
   output                              response_valid,
   input                               response_ready,
@@ -63,15 +61,14 @@ module dmac_dest_mm_axi #(
   input  [ID_WIDTH-1:0]             request_id,
   output [ID_WIDTH-1:0]             response_id,
 
-  output [ID_WIDTH-1:0]             data_id,
   output [ID_WIDTH-1:0]             address_id,
-  input                               data_eot,
   input                               address_eot,
   input                               response_eot,
 
   input                               fifo_valid,
   output                              fifo_ready,
   input [DMA_DATA_WIDTH-1:0]        fifo_data,
+  input                               fifo_last,
 
   // Write address
   input                               m_axi_awready,
@@ -96,34 +93,7 @@ module dmac_dest_mm_axi #(
   output                              m_axi_bready
 );
 
-wire address_req_valid;
-wire address_req_ready;
-wire data_req_valid;
-wire data_req_ready;
-
 wire address_enabled;
-wire data_enabled;
-assign sync_id_ret = sync_id;
-
-wire _fifo_ready;
-assign fifo_ready = _fifo_ready | ~enabled;
-
-splitter #(
-  .NUM_M(2)
-) i_req_splitter (
-  .clk(m_axi_aclk),
-  .resetn(m_axi_aresetn),
-  .s_valid(req_valid),
-  .s_ready(req_ready),
-  .m_valid({
-    address_req_valid,
-    data_req_valid
-  }),
-  .m_ready({
-    address_req_ready,
-    data_req_ready
-  })
-);
 
 dmac_address_generator #(
   .ID_WIDTH(ID_WIDTH),
@@ -141,10 +111,9 @@ dmac_address_generator #(
 
   .id(address_id),
   .request_id(request_id),
-  .sync_id(sync_id),
 
-  .req_valid(address_req_valid),
-  .req_ready(address_req_ready),
+  .req_valid(req_valid),
+  .req_ready(req_ready),
   .req_address(req_address),
   .req_last_burst_length(req_last_burst_length),
 
@@ -160,36 +129,10 @@ dmac_address_generator #(
   .cache(m_axi_awcache)
 );
 
-dmac_data_mover # (
-  .ID_WIDTH(ID_WIDTH),
-  .DATA_WIDTH(DMA_DATA_WIDTH),
-  .BEATS_PER_BURST_WIDTH(BEATS_PER_BURST_WIDTH)
-) i_data_mover (
-  .clk(m_axi_aclk),
-  .resetn(m_axi_aresetn),
-
-  .enable(address_enabled),
-  .enabled(data_enabled),
-
-  .xfer_req(),
-
-  .request_id(address_id),
-  .response_id(data_id),
-  .sync_id(sync_id),
-  .eot(data_eot),
-
-  .req_valid(data_req_valid),
-  .req_ready(data_req_ready),
-  .req_last_burst_length(req_last_burst_length),
-
-  .s_axi_valid(fifo_valid),
-  .s_axi_ready(_fifo_ready),
-  .s_axi_data(fifo_data),
-  .m_axi_valid(m_axi_wvalid),
-  .m_axi_ready(m_axi_wready),
-  .m_axi_data(m_axi_wdata),
-  .m_axi_last(m_axi_wlast)
-);
+assign m_axi_wvalid = fifo_valid;
+assign fifo_ready = m_axi_wready;
+assign m_axi_wlast = fifo_last;
+assign m_axi_wdata = fifo_data;
 
 assign m_axi_wstrb = {(DMA_DATA_WIDTH/8){1'b1}};
 
@@ -202,12 +145,11 @@ dmac_response_handler #(
   .bready(m_axi_bready),
   .bresp(m_axi_bresp),
 
-  .enable(data_enabled),
+  .enable(address_enabled),
   .enabled(enabled),
 
   .id(response_id),
-  .request_id(data_id),
-  .sync_id(sync_id),
+  .request_id(address_id),
 
   .eot(response_eot),
 
