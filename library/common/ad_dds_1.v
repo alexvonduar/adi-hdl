@@ -1,6 +1,6 @@
 // ***************************************************************************
 // ***************************************************************************
-// Copyright 2014 - 2017 (c) Analog Devices, Inc. All rights reserved.
+// Copyright 2014 - 2018 (c) Analog Devices, Inc. All rights reserved.
 //
 // In this HDL repository, there are many different and unique modules, consisting
 // of various HDL (Verilog or VHDL) components. The individual modules are
@@ -35,36 +35,68 @@
 
 `timescale 1ns/100ps
 
-module ad_dds_1 (
+module ad_dds_1 #(
+
+  // parameters
+
+  parameter   DDS_TYPE = 1,
+  parameter   DDS_D_DW = 16,
+  parameter   DDS_P_DW = 16) (
 
   // interface
 
-  input                   clk,
-  input       [15:0]      angle,
-  input       [15:0]      scale,
-  output  reg [15:0]      dds_data);
+  input                       clk,
+  input       [DDS_P_DW-1:0]  angle,
+  input       [        15:0]  scale,
+  output  reg [DDS_D_DW-1:0]  dds_data);
 
-  // internal registers
+  // local parameters
+
+  localparam DDS_CORDIC_TYPE = 1;
+  localparam DDS_POLINOMIAL_TYPE = 2;
 
   // internal signals
 
-  wire    [15:0]  sine_s;
-  wire    [33:0]  s1_data_s;
+  wire    [ DDS_D_DW-1:0] sine_s;
+  wire    [DDS_D_DW+17:0] s1_data_s;
 
   // sine
 
-  ad_dds_sine #(.DELAY_DATA_WIDTH(1)) i_dds_sine (
-    .clk (clk),
-    .angle (angle),
-    .sine (sine_s),
-    .ddata_in (1'b0),
-    .ddata_out ());
+  generate
+    if (DDS_TYPE == DDS_CORDIC_TYPE) begin
 
-  // scale
+      ad_dds_sine_cordic #(
+        .CORDIC_DW(DDS_D_DW),
+        .PHASE_DW(DDS_P_DW),
+        .DELAY_DW(1))
+      i_dds_sine (
+        .clk (clk),
+        .angle (angle),
+        .sine (sine_s),
+        .cosine (),
+        .ddata_in (1'b0),
+        .ddata_out ());
 
-  ad_mul #(.DELAY_DATA_WIDTH(1)) i_dds_scale (
+    end else begin
+
+      ad_dds_sine i_dds_sine (
+        .clk (clk),
+        .angle (angle),
+        .sine (sine_s),
+        .ddata_in (1'b0),
+        .ddata_out ());
+    end
+  endgenerate
+
+  // scale for a sine generator
+
+  ad_mul #(
+    .A_DATA_WIDTH(DDS_D_DW + 1),
+    .B_DATA_WIDTH(17),
+    .DELAY_DATA_WIDTH(1))
+  i_dds_scale (
     .clk (clk),
-    .data_a ({sine_s[15], sine_s}),
+    .data_a ({sine_s[DDS_D_DW-1], sine_s}),
     .data_b ({scale[15], scale}),
     .data_p (s1_data_s),
     .ddata_in (1'b0),
@@ -73,7 +105,8 @@ module ad_dds_1 (
   // dds data
 
   always @(posedge clk) begin
-    dds_data <= s1_data_s[29:14];
+    //15'h8000 is the maximum scale
+    dds_data <= s1_data_s[DDS_D_DW+13:14];
   end
 
 endmodule

@@ -70,6 +70,8 @@ module axi_jesd204_rx_tb;
   wire [1:0] s_axi_rresp;
   wire [31:0] s_axi_rdata;
 
+  wire [NUM_LANES*32-1:0] core_status_err_statistics_cnt;
+
   task write_reg;
   input [31:0] addr;
   input [31:0] value;
@@ -157,7 +159,7 @@ module axi_jesd204_rx_tb;
     for (i = 0; i < 1024; i = i + 1)
       expected_reg_mem[i] <= 'h00;
     /* Non zero power-on-reset values */
-    set_reset_reg_value('h00, 32'h00010161); /* PCORE version register */
+    set_reset_reg_value('h00, 32'h00010261); /* PCORE version register */
     set_reset_reg_value('h0c, 32'h32303452); /* PCORE magic register */
     set_reset_reg_value('h10, NUM_LANES); /* Number of lanes */
     set_reset_reg_value('h18, NUM_LINKS); /* Number of links */
@@ -167,6 +169,11 @@ module axi_jesd204_rx_tb;
     set_reset_reg_value('hc4, 'h1); /* Core state */
 //    set_reset_reg_value('hc8, 'h28000); /* clock monitor */
     set_reset_reg_value('h210, 'h3); /* OCTETS_PER_MULTIFRAME  */
+
+    /* Lane error statistics */
+    for (i = 0; i < NUM_LANES; i = i + 1) begin
+      set_reset_reg_value('h308 + i*'h20, core_status_err_statistics_cnt[32*i+:32]);
+    end
   end
   endtask
 
@@ -227,6 +234,8 @@ module axi_jesd204_rx_tb;
       l2,core_ilas_config_addr,2'h1,
       l2,core_ilas_config_addr,2'h0
     };
+
+    assign core_status_err_statistics_cnt[32*l+:32] = {28'hffaa550,l2};
   end
   endgenerate
 
@@ -349,7 +358,7 @@ module axi_jesd204_rx_tb;
     .core_event_sysref_alignment_error(1'b0),
     .core_event_sysref_edge(1'b0),
 
-    .core_status_err_statistics_cnt(),
+    .core_status_err_statistics_cnt(core_status_err_statistics_cnt),
     .core_ctrl_err_statistics_mask(),
     .core_ctrl_err_statistics_reset(),
 

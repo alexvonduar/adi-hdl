@@ -1,6 +1,6 @@
 // ***************************************************************************
 // ***************************************************************************
-// Copyright 2014 - 2017 (c) Analog Devices, Inc. All rights reserved.
+// Copyright 2014 - 2018 (c) Analog Devices, Inc. All rights reserved.
 //
 // In this HDL repository, there are many different and unique modules, consisting
 // of various HDL (Verilog or VHDL) components. The individual modules are
@@ -35,67 +35,98 @@
 
 `timescale 1ns/100ps
 
+// single channel dds (dual tone)
 module ad_dds #(
 
-  // data path disable
-
-  parameter   DISABLE = 0) (
+  parameter DISABLE = 0,
+  // range 8-24
+  parameter DDS_DW = 16,
+  // range 8-16 (FIX ME)
+  parameter PHASE_DW = 16,
+  // set 1 for CORDIC or 2 for Polynomial
+  parameter DDS_TYPE = 1,
+  // range 8-24
+  parameter CORDIC_DW = 16,
+  // range 8-24 (make sure CORDIC_PHASE_DW < CORDIC_DW)
+  parameter CORDIC_PHASE_DW = 16,
+  // the clock radtio between the device clock(sample rate) and the dac_core clock
+  // 2^N, 1<N<6
+  parameter CLK_RATIO = 1) (
 
   // interface
 
-  input           clk,
-  input           dds_format,
-  input   [15:0]  dds_phase_0,
-  input   [15:0]  dds_scale_0,
-  input   [15:0]  dds_phase_1,
-  input   [15:0]  dds_scale_1,
-  output  [15:0]  dds_data);
+  input                               clk,
+  input                               dac_dds_format,
+  input                               dac_data_sync,
+  input                               dac_valid,
+  input       [                15:0]  tone_1_scale,
+  input       [                15:0]  tone_2_scale,
+  input       [                15:0]  tone_1_init_offset,
+  input       [                15:0]  tone_2_init_offset,
+  input       [        PHASE_DW-1:0]  tone_1_freq_word,
+  input       [        PHASE_DW-1:0]  tone_2_freq_word,
+  output  reg [DDS_DW*CLK_RATIO-1:0]  dac_dds_data
+  );
 
-  // internal registers
-
-  reg     [15:0]  dds_data_int = 'd0;
-  reg     [15:0]  dds_data_out = 'd0;
-  reg     [15:0]  dds_scale_0_d = 'd0;
-  reg     [15:0]  dds_scale_1_d = 'd0;
-
-  // internal signals
-
-  wire    [15:0]  dds_data_0_s;
-  wire    [15:0]  dds_data_1_s;
-
-  // disable
-
-  assign dds_data = (DISABLE == 1) ? 16'd0 : dds_data_out;
-
-  // dds channel output
+  wire [DDS_DW*CLK_RATIO-1:0] dac_dds_data_s;
 
   always @(posedge clk) begin
-    dds_data_int <= dds_data_0_s + dds_data_1_s;
-    dds_data_out[15:15] <= dds_data_int[15] ^ dds_format;
-    dds_data_out[14: 0] <= dds_data_int[14:0];
+    dac_dds_data <= dac_dds_data_s;
   end
 
-  always @(posedge clk) begin
-    dds_scale_0_d <= dds_scale_0;
-    dds_scale_1_d <= dds_scale_1;
-  end
-  // dds-1
+  genvar i;
+  generate
 
-  ad_dds_1 i_dds_1_0 (
-    .clk (clk),
-    .angle (dds_phase_0),
-    .scale (dds_scale_0_d),
-    .dds_data (dds_data_0_s));
+    if (DISABLE == 1) begin
+      assign dac_dds_data_s = {(DDS_DW*CLK_RATIO-1){1'b0}};
+    end else begin
 
-  // dds-2
+      // enable dds
 
-  ad_dds_1 i_dds_1_1 (
-    .clk (clk),
-    .angle (dds_phase_1),
-    .scale (dds_scale_1_d),
-    .dds_data (dds_data_1_s));
+      reg  [PHASE_DW-1:0]  dac_dds_phase_0[1:CLK_RATIO];
+      reg  [PHASE_DW-1:0]  dac_dds_phase_1[1:CLK_RATIO];
+      reg  [PHASE_DW-1:0]  dac_dds_incr_0 = 'd0;
+      reg  [PHASE_DW-1:0]  dac_dds_incr_1 = 'd0;
+
+      always @(posedge clk) begin
+        dac_dds_incr_0 <= tone_1_freq_word * CLK_RATIO;
+        dac_dds_incr_1 <= tone_2_freq_word * CLK_RATIO;
+      end
+
+      //  phase accumulator
+      for (i=1; i <= CLK_RATIO; i=i+1) begin: dds_phase
+        always @(posedge clk) begin
+          if (dac_data_sync == 1'b1) begin
+            if (i == 1) begin
+              dac_dds_phase_0[1] <= tone_1_init_offset;
+              dac_dds_phase_1[1] <= tone_2_init_offset;
+            end else if (CLK_RATIO > 1)begin
+              dac_dds_phase_0[i] <= dac_dds_phase_0[i-1] + tone_1_freq_word;
+              dac_dds_phase_1[i] <= dac_dds_phase_1[i-1] + tone_2_freq_word;
+            end
+          end else if (dac_valid == 1'b1) begin
+            dac_dds_phase_0[i] <= dac_dds_phase_0[i] + dac_dds_incr_0;
+            dac_dds_phase_1[i] <= dac_dds_phase_1[i] + dac_dds_incr_1;
+          end
+        end
+
+        // phase to amplitude convertor
+         ad_dds_2 #(
+           .DDS_DW (DDS_DW),
+           .PHASE_DW (PHASE_DW),
+           .DDS_TYPE (DDS_TYPE),
+           .CORDIC_DW (CORDIC_DW),
+           .CORDIC_PHASE_DW (CORDIC_PHASE_DW))
+         i_dds_2 (
+          .clk (clk),
+          .dds_format (dac_dds_format),
+          .dds_phase_0 (dac_dds_phase_0[i]),
+          .dds_scale_0 (tone_1_scale),
+          .dds_phase_1 (dac_dds_phase_1[i]),
+          .dds_scale_1 (tone_2_scale),
+          .dds_data (dac_dds_data_s[(DDS_DW*i)-1:DDS_DW*(i-1)]));
+      end
+    end
+  endgenerate
 
 endmodule
-
-// ***************************************************************************
-// ***************************************************************************

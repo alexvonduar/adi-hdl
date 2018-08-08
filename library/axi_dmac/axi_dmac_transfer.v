@@ -238,6 +238,7 @@ assign req_ready = req_enable & req_ready_gated;
 generate if (DMA_2D_TRANSFER == 1) begin
 
 dmac_2d_transfer #(
+  .DMA_AXI_ADDR_WIDTH(DMA_AXI_ADDR_WIDTH),
   .DMA_LENGTH_WIDTH (DMA_LENGTH_WIDTH),
   .BYTES_PER_BEAT_WIDTH_DEST (BYTES_PER_BEAT_WIDTH_DEST),
   .BYTES_PER_BEAT_WIDTH_SRC (BYTES_PER_BEAT_WIDTH_SRC)
@@ -256,6 +257,7 @@ dmac_2d_transfer #(
   .req_dest_stride (req_dest_stride),
   .req_src_stride (req_src_stride),
   .req_sync_transfer_start (req_sync_transfer_start),
+  .req_last (req_last),
 
   .out_req_valid (dma_req_valid),
   .out_req_ready (dma_req_ready),
@@ -263,10 +265,9 @@ dmac_2d_transfer #(
   .out_req_src_address (dma_req_src_address),
   .out_req_length (dma_req_length),
   .out_req_sync_transfer_start (dma_req_sync_transfer_start),
+  .out_req_last (dma_req_last),
   .out_eot (dma_req_eot)
 );
-
-assign dma_req_last = 1'b0;
 
 end else begin
 

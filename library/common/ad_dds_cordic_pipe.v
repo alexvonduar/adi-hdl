@@ -35,43 +35,66 @@
 
 `timescale 1ns/100ps
 
-module ad_rst (
+module ad_dds_cordic_pipe#(
 
-  // clock reset
+  // parameters
 
-  input                   rst_async,
-  input                   clk,
-  output                  rstn,
-  output  reg             rst);
+  // Range = N/A
+  parameter P_DW = 16,
+  // Range = N/A
+  parameter D_DW = 16,
+  // Range = N/A
+  parameter DELAY_DW = 1,
+  // Range = 0-(DW - 1)
+  parameter SHIFT = 0) (
 
-  // internal registers
-  reg             rst_async_d1 = 1'd1;
-  reg             rst_async_d2 = 1'd1;
-  reg             rst_sync = 1'd1;
-  reg             rst_sync_d = 1'd1 /* synthesis preserve */;
+  // Interface
 
-  // simple reset synchronizer
-  always @(posedge clk or posedge rst_async) begin
-    if (rst_async) begin
-      rst_async_d1 <= 1'b1;
-      rst_async_d2 <= 1'b1;
-      rst_sync <= 1'b1;
-    end else begin
-      rst_async_d1 <= 1'b0;
-      rst_async_d2 <= rst_async_d1;
-      rst_sync <= rst_async_d2;
-    end
-  end
+                      input                          clk,
+  (* keep = "TRUE" *) input                          dir,
+  (* keep = "TRUE" *) input             [  D_DW-1:0] dataa_x,
+  (* keep = "TRUE" *) input             [  D_DW-1:0] dataa_y,
+  (* keep = "TRUE" *) input             [  P_DW-1:0] dataa_z,
+  (* keep = "TRUE" *) input             [  P_DW-1:0] datab_z,
+  (* keep = "TRUE" *) output reg        [  D_DW-1:0] result_x,
+  (* keep = "TRUE" *) output reg        [  D_DW-1:0] result_y,
+  (* keep = "TRUE" *) output reg        [  P_DW-1:0] result_z,
+                      input             [DELAY_DW:1] data_delay_in,
+                      output            [DELAY_DW:1] data_delay_out);
 
-  // two-stage synchronizer to prevent metastability on the falling edge
+  // Registers Declarations
+
+  reg   [DELAY_DW:1] data_delay = 'd0;
+
+  // Wires Declarations
+
+  wire  [  D_DW-1:0]  sgn_shift_x;
+  wire  [  D_DW-1:0]  sgn_shift_y;
+  wire                dir_inv = ~dir;
+
+  // Sign shift
+
+  assign sgn_shift_x = {{SHIFT{dataa_x[D_DW-1]}}, dataa_x[D_DW-1:SHIFT]};
+  assign sgn_shift_y = {{SHIFT{dataa_y[D_DW-1]}}, dataa_y[D_DW-1:SHIFT]};
+
+  // Stage rotation
+
   always @(posedge clk) begin
-    rst_sync_d <= rst_sync;
-    rst <= rst_sync_d;
+    result_x <= dataa_x + ({D_DW{dir_inv}} ^ sgn_shift_y) + dir_inv;
+    result_y <= dataa_y + ({D_DW{dir}}     ^ sgn_shift_x) + dir;
+    result_z <= dataa_z + ({P_DW{dir_inv}} ^     datab_z) + dir_inv;
   end
 
-  assign rstn = ~rst;
+  // Delay data (if used)
+
+  generate
+    if (DELAY_DW > 1) begin
+      always @(posedge clk) begin
+        data_delay <= data_delay_in;
+      end
+    end
+  endgenerate
+
+  assign data_delay_out = data_delay;
 
 endmodule
-
-// ***************************************************************************
-// ***************************************************************************
