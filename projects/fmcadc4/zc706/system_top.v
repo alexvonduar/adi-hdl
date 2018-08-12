@@ -146,8 +146,8 @@ module system_top (
   assign ad9680_2_csn = (spi0_csn == 3'b010) ? 1'b0 : 1'b1;
   assign ada4961_1a_csn = (spi0_csn == 3'b011) ? 1'b0 : 1'b1;
   assign ada4961_1b_csn = (spi0_csn == 3'b100) ? 1'b0 : 1'b1;
-  assign ada4961_1c_csn = (spi0_csn == 3'b101) ? 1'b0 : 1'b1;
-  assign ada4961_1d_csn = (spi0_csn == 3'b110) ? 1'b0 : 1'b1;
+  assign ada4961_2a_csn = (spi0_csn == 3'b101) ? 1'b0 : 1'b1;
+  assign ada4961_2b_csn = (spi0_csn == 3'b110) ? 1'b0 : 1'b1;
 
   // instantiations
 
@@ -197,6 +197,9 @@ module system_top (
     .dio_o (gpio_i[14:0]),
     .dio_p (gpio_bd));
 
+  assign gpio_i[63:38] = 'h0;
+  assign gpio_i[31:15] = 'h0;
+
   system_wrapper i_system_wrapper (
     .ddr3_addr (ddr3_addr),
     .ddr3_ba (ddr3_ba),
@@ -244,18 +247,6 @@ module system_top (
     .hdmi_vsync (hdmi_vsync),
     .iic_main_scl_io (iic_scl),
     .iic_main_sda_io (iic_sda),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
-    .ps_intr_10 (1'b0),
-    .ps_intr_11 (1'b0),
     .rx_data_0_n (rx_data_n[0]),
     .rx_data_0_p (rx_data_p[0]),
     .rx_data_1_n (rx_data_n[1]),

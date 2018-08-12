@@ -113,7 +113,7 @@ ad_iobuf #(.DATA_WIDTH(15)) iobuf_gpio_bd (
   .dio_t (gpio_t[14:0]),
   .dio_p (gpio_bd));
 
-assign gpio_i[63:15] = gpio_o[63:15];
+assign gpio_i[63:15] = 'h0;
 
 ad9265_spi i_spi (
     .spi_csn(spi0_csn[1:0]),
@@ -155,19 +155,6 @@ system_wrapper i_system_wrapper (
     .hdmi_vsync (hdmi_vsync),
     .iic_main_scl_io (iic_scl),
     .iic_main_sda_io (iic_sda),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
-    .ps_intr_10 (1'b0),
-    .ps_intr_11 (1'b0),
-    .ps_intr_12 (1'b0),
     .spdif (spdif),
     .adc_clk_in_n(adc_clk_in_n),
     .adc_clk_in_p(adc_clk_in_p),

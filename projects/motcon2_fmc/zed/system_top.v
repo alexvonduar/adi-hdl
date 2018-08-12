@@ -174,8 +174,8 @@ module system_top (
   assign pwm_m2_dh_o    = 1'b0;
   assign pwm_m2_dl_o    = 1'b0;
 
-  assign gpio_i[63:35]  = gpio_o[63:35];
-  assign gpio_i[32]     = gpio_o[32];
+  assign gpio_i[63:35]  = 'h0;
+  assign gpio_i[32]     = 'h0;
 
   // instantiations
 
@@ -304,13 +304,6 @@ module system_top (
     .iic_mux_sda_i (iic_mux_sda_i_s),
     .iic_mux_sda_o (iic_mux_sda_o_s),
     .iic_mux_sda_t (iic_mux_sda_t_s),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
     .iic_ee2_scl_io(iic_ee2_scl_io),
     .iic_ee2_sda_io(iic_ee2_sda_io),
     .spi0_clk_i (1'b0),

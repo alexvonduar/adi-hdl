@@ -221,13 +221,18 @@ module system_top (
               adc_fdb,          // 36
               adc_fda,          // 35
               dac_irq,          // 34
-              clkd_status}));   // 32
+              clkd_status}));   // 33-32
 
   ad_iobuf #(.DATA_WIDTH(15)) i_iobuf_bd (
     .dio_t (gpio_t[14:0]),
     .dio_i (gpio_o[14:0]),
     .dio_o (gpio_i[14:0]),
     .dio_p (gpio_bd));
+
+  assign gpio_i[63:44] = 'h0;
+  assign gpio_i[39] = 'h0;
+  assign gpio_i[37] = 'h0;
+  assign gpio_i[31:15] = 'h0;
 
   system_wrapper i_system_wrapper (
     .ddr3_addr (ddr3_addr),
@@ -276,16 +281,6 @@ module system_top (
     .hdmi_vsync (hdmi_vsync),
     .iic_main_scl_io (iic_scl),
     .iic_main_sda_io (iic_sda),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
     .rx_data_0_n (rx_data_n[0]),
     .rx_data_0_p (rx_data_p[0]),
     .rx_data_1_n (rx_data_n[1]),

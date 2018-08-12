@@ -31,10 +31,18 @@ set xcvr_instance NONE
 ###################################################################################################
 ###################################################################################################
 
-proc ad_ip_instance {i_ip i_name} {
+proc ad_ip_instance {i_ip i_name {i_params {}}} {
 
-  create_bd_cell -type ip -vlnv [get_ipdefs -all -filter "VLNV =~ *:${i_ip}:* && \
-    design_tool_contexts =~ *IPI* && UPGRADE_VERSIONS == \"\""] ${i_name}
+  set cell [create_bd_cell -type ip -vlnv [get_ipdefs -all -filter "VLNV =~ *:${i_ip}:* && \
+    design_tool_contexts =~ *IPI* && UPGRADE_VERSIONS == \"\""] ${i_name}]
+  if {$i_params != {}} {
+    set config {}
+    # Add CONFIG. prefix to all config options
+    foreach {k v} $i_params {
+      lappend config "CONFIG.$k" $v
+    }
+    set_property -dict $config $cell
+  }
 }
 
 proc ad_ip_parameter {i_name i_param i_value} {
@@ -717,29 +725,29 @@ proc ad_cpu_interrupt {p_ps_index p_mb_index p_name} {
 
   if {($sys_zynq == 2) && ($p_index <= 7)} {
     set p_net [get_bd_nets -of_objects [get_bd_pins sys_concat_intc_0/In$p_index]]
-    set p_pin [find_bd_objs -relation connected_to [get_bd_pins sys_concat_intc_0/In$p_index]]
+    set p_pin [get_bd_pins sys_concat_intc_0/In$p_index]
 
-    puts "delete_bd_objs $p_net $p_pin"
-    delete_bd_objs $p_net $p_pin
+    puts "disconnect_bd_net $p_net $p_pin"
+    disconnect_bd_net $p_net $p_pin
     ad_connect sys_concat_intc_0/In$p_index $p_name
   }
 
   if {($sys_zynq == 2) && ($p_index >= 8)} {
     set p_net [get_bd_nets -of_objects [get_bd_pins sys_concat_intc_1/In$m_index]]
-    set p_pin [find_bd_objs -relation connected_to [get_bd_pins sys_concat_intc_1/In$m_index]]
+    set p_pin [get_bd_pins sys_concat_intc_1/In$m_index]
 
-    puts "delete_bd_objs $p_net $p_pin"
-    delete_bd_objs $p_net $p_pin
+    puts "disconnect_bd_net $p_net $p_pin"
+    disconnect_bd_net $p_net $p_pin
     ad_connect sys_concat_intc_1/In$m_index $p_name
   }
 
   if {$sys_zynq <= 1} {
 
     set p_net [get_bd_nets -of_objects [get_bd_pins sys_concat_intc/In$p_index]]
-    set p_pin [find_bd_objs -relation connected_to [get_bd_pins sys_concat_intc/In$p_index]]
+    set p_pin [get_bd_pins sys_concat_intc/In$p_index]
 
-    puts "delete_bd_objs $p_net $p_pin"
-    delete_bd_objs $p_net $p_pin
+    puts "disconnect_bd_net $p_net $p_pin"
+    disconnect_bd_net $p_net $p_pin
     ad_connect sys_concat_intc/In$p_index $p_name
   }
 }

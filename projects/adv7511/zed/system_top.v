@@ -95,7 +95,7 @@ module system_top (
   wire    [ 1:0]  iic_mux_sda_o_s;
   wire            iic_mux_sda_t_s;
 
-  assign gpio_i[63:32] = gpio_o[63:32];
+  assign gpio_i[63:32] = 'h0;
 
   // instantiations
 
@@ -166,19 +166,6 @@ module system_top (
     .iic_mux_sda_i (iic_mux_sda_i_s),
     .iic_mux_sda_o (iic_mux_sda_o_s),
     .iic_mux_sda_t (iic_mux_sda_t_s),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
-    .ps_intr_10 (1'b0),
-    .ps_intr_12 (1'b0),
-    .ps_intr_13 (1'b0),
     .otg_vbusoc (otg_vbusoc),
     .spdif (spdif),
     .spi0_clk_i (1'b0),

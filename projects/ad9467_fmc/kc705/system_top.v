@@ -133,6 +133,9 @@ module system_top (
      .dio_o (gpio_i[16:0]),
      .dio_p (gpio_bd));
 
+  assign gpio_i[63:32] = 'h0;
+  assign gpio_i[31:17] = 'h0;
+
   system_wrapper i_system_wrapper (
       .ddr3_addr (ddr3_addr),
       .ddr3_ba (ddr3_ba),
@@ -158,14 +161,6 @@ module system_top (
       .gpio1_i (gpio_i[63:32]),
       .iic_main_scl_io (iic_scl),
       .iic_main_sda_io (iic_sda),
-      .mb_intr_02 (1'b0),
-      .mb_intr_03 (1'b0),
-      .mb_intr_06 (1'b0),
-      .mb_intr_07 (1'b0),
-      .mb_intr_08 (1'b0),
-      .mb_intr_13 (1'b0),
-      .mb_intr_14 (1'b0),
-      .mb_intr_15 (1'b0),
       .mdio_mdc (mdio_mdc),
       .mdio_mdio_io (mdio_mdio),
       .mii_col (mii_col),

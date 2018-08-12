@@ -128,7 +128,7 @@ module system_top (
 
   // board gpio - 31-0
 
-  assign gpio_i[31:20] = gpio_o[31:20];
+  assign gpio_i[31:20] = 'h0;
 
   ad_iobuf #(.DATA_WIDTH(20)) i_iobuf_bd (
     .dio_t (gpio_t[19:0]),
@@ -138,8 +138,8 @@ module system_top (
 
   // ad9361 gpio - 63-32
 
-  assign gpio_i[63:52] = gpio_o[63:52];
-  assign gpio_i[50:47] = gpio_o[50:47];
+  assign gpio_i[63:52] = 'h0;
+  assign gpio_i[50:47] = 'h0;
 
   ad_iobuf #(.DATA_WIDTH(16)) i_iobuf (
     .dio_t ({gpio_t[51], gpio_t[46:32]}),
@@ -188,6 +188,7 @@ module system_top (
     .gpio_i (gpio_i),
     .gpio_o (gpio_o),
     .gpio_t (gpio_t),
+    .gps_pps (1'b0),
     .gt_ref_clk (gt_ref_clk),
     .gt_rx_n (gt_rx_n),
     .gt_rx_p (gt_rx_p),
@@ -196,18 +197,6 @@ module system_top (
     .iic_main_scl_io (iic_scl),
     .iic_main_sda_io (iic_sda),
     .otg_vbusoc (1'b0),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
-    .ps_intr_10 (1'b0),
-    .ps_intr_15 (1'b0),
     .rx_clk_in (rx_clk_in),
     .rx_data_in (rx_data_in),
     .rx_frame_in (rx_frame_in),

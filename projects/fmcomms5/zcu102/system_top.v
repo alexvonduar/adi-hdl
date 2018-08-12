@@ -167,12 +167,12 @@ module system_top (
   assign gpio_ctl_0 = gpio_o[41:38];
   assign gpio_bd_o = gpio_o[20:13];
   assign gpio_i[12: 0] = gpio_bd_i;
-  assign gpio_i[21:13] = gpio_o[21:13];
+  assign gpio_i[21:13] = 'h0;
   assign gpio_i[29:22] = gpio_status_0;
   assign gpio_i[37:30] = gpio_status_1;
-  assign gpio_i[63:38] = gpio_o[63:38];
+  assign gpio_i[63:38] = 'h0;
   assign gpio_i[64] = gpio_ad5355_lock;
-  assign gpio_i[94:65] = gpio_o[94:65];
+  assign gpio_i[94:65] = 'h0;
 
   assign spi_ad9361_0 = spi0_csn[0];
   assign spi_ad9361_1 = spi0_csn[1];
@@ -188,20 +188,6 @@ module system_top (
     .gpio_i (gpio_i),
     .gpio_o (gpio_o),
     .gpio_t (),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
-    .ps_intr_10 (1'b0),
-    .ps_intr_11 (1'b0),
-    .ps_intr_14 (1'b0),
-    .ps_intr_15 (1'b0),
     .rx_clk_in_0_n (rx_clk_in_0_n),
     .rx_clk_in_0_p (rx_clk_in_0_p),
     .rx_clk_in_1_n (rx_clk_in_1_n),

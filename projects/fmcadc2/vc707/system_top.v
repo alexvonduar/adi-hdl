@@ -172,6 +172,9 @@ module system_top (
     .dio_o (gpio_i[20:0]),
     .dio_p (gpio_bd));
 
+  assign gpio_i[63:34] = 'h0;
+  assign gpio_i[31:21] = 'h0;
+
   ad_sysref_gen i_sysref (
     .core_clk (rx_clk),
     .sysref_en (gpio_o[34]),
@@ -208,11 +211,6 @@ module system_top (
     .linear_flash_dq_io (linear_flash_dq_io),
     .linear_flash_oen (linear_flash_oen),
     .linear_flash_wen (linear_flash_wen),
-    .mb_intr_06 (1'd0),
-    .mb_intr_07 (1'd0),
-    .mb_intr_08 (1'd0),
-    .mb_intr_14 (1'd0),
-    .mb_intr_15 (1'd0),
     .mdio_mdc (mdio_mdc),
     .mdio_mdio_io (mdio_mdio),
     .mgt_clk_clk_n (mgt_clk_n),

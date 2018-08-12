@@ -157,9 +157,9 @@ module system_top (
 
   // gpio[31:20] controls misc stuff (keep as io)
 
-  assign gpio_i[31:29] = gpio_o[31:29];
+  assign gpio_i[31:29] = 'h0;
   assign gpio_i[28:28] = imu_ready;
-  assign gpio_i[27:27] = gpio_o[27:27];
+  assign gpio_i[27:27] = 'h0;
 
   // rtc int gpio - 26
 
@@ -171,7 +171,7 @@ module system_top (
 
   // unused gpio - 25:24
 
-  assign gpio_i[25:24] = gpio_o[25:24];
+  assign gpio_i[25:24] = 'h0;
 
   // misc gpio - 23:20
 
@@ -186,7 +186,7 @@ module system_top (
 
   // gpio[19:16] controls adp5061 (keep as io)
 
-  assign gpio_i[19] = gpio_o[19];
+  assign gpio_i[19] = 'h0;
 
   ad_iobuf #(.DATA_WIDTH(3)) i_iobuf_adp5061 (
     .dio_t (gpio_t[18:16]),
@@ -203,7 +203,7 @@ module system_top (
   assign oled_dc = gpio_o[11];
   assign oled_rst = gpio_o[10];
   assign imu_rstn = gpio_o[9];
-  assign gpio_i[11:9] = gpio_o[11:9];
+  assign gpio_i[11:9] = 'h0;
 
   ad_iobuf #(.DATA_WIDTH(1)) i_iobuf_imu_sync (
     .dio_t (gpio_t[8]),
@@ -223,14 +223,14 @@ module system_top (
   assign switch_led_r = gpio_o[2];
   assign switch_led_g = gpio_o[1];
   assign switch_led_b = gpio_o[0];
-  assign gpio_i[3:0] = gpio_o[3:0];
+  assign gpio_i[3:0] = 'h0;
 
   // unused gpio - 63:30
 
-  assign gpio_i[63] = gpio_o[63];
-  assign gpio_i[62] = gpio_o[62];
-  assign gpio_i[61] = gpio_o[61];
-  assign gpio_i[60] = gpio_o[60];
+  assign gpio_i[63] = 'h0;
+  assign gpio_i[62] = 'h0;
+  assign gpio_i[61] = 'h0;
+  assign gpio_i[60] = 'h0;
 
   // tsw-part-2 gpio - 59:57
 
@@ -252,10 +252,10 @@ module system_top (
 
   // unused gpio - 55:53
 
-  assign gpio_i[55:53] = gpio_o[55:53];
+  assign gpio_i[55:53] = 'h0;
 
   // rf & clock-select gpio - 52:51
- 
+
   ad_iobuf #(.DATA_WIDTH(2)) i_iobuf_rf_1 (
     .dio_t (gpio_t[52:51]),
     .dio_i (gpio_o[52:51]),
@@ -275,7 +275,7 @@ module system_top (
               tsw_s5}));          // 47
 
   // ad9361 gpio - 46:32
- 
+
   ad_iobuf #(.DATA_WIDTH(15)) i_iobuf_ad9361 (
     .dio_t (gpio_t[46:32]),
     .dio_i (gpio_o[46:32]),
@@ -334,18 +334,6 @@ module system_top (
     .iic_main_scl_io (iic_scl),
     .iic_main_sda_io (iic_sda),
     .otg_vbusoc (1'b0),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
-    .ps_intr_10 (1'b0),
-    .ps_intr_15 (1'b0),
     .rx_clk_in_n (rx_clk_in_n),
     .rx_clk_in_p (rx_clk_in_p),
     .rx_data_in_n (rx_data_in_n),
@@ -374,6 +362,7 @@ module system_top (
     .tdd_sync_o (),
     .tdd_sync_t (),
     .gps_pps (gps_pps),
+    .sys_cpu_clk_out (sys_cpu_clk),
     .tx_clk_out_n (tx_clk_out_n),
     .tx_clk_out_p (tx_clk_out_p),
     .tx_data_out_n (tx_data_out_n),

@@ -134,6 +134,9 @@ module system_top (
     .dio_o (gpio_i[16:0]),
     .dio_p (gpio_bd));
 
+  assign gpio_i[63:32] = 'h0;
+  assign gpio_i[31:17] = 'h0;
+
   fmcjesdadc1_spi i_fmcjesdadc1_spi (
     .spi_csn (spi_csn[0]),
     .spi_clk (spi_clk),
@@ -173,12 +176,6 @@ module system_top (
     .gpio_lcd_tri_io (gpio_lcd),
     .iic_main_scl_io (iic_scl),
     .iic_main_sda_io (iic_sda),
-    .mb_intr_02 (1'd0),
-    .mb_intr_03 (1'd0),
-    .mb_intr_06 (1'd0),
-    .mb_intr_07 (1'd0),
-    .mb_intr_08 (1'd0),
-    .mb_intr_15 (1'd0),
     .mdio_mdc (mdio_mdc),
     .mdio_mdio_io (mdio_mdio),
     .mii_col (mii_col),

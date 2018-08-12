@@ -224,6 +224,9 @@ module system_top (
     .dio_o (gpio_i[16:0]),
     .dio_p (gpio_bd));
 
+  assign gpio_i[31:17] = 'h0;
+  assign gpio_i[63:60] = 'h0;
+
   system_wrapper i_system_wrapper (
     .dac_fifo_bypass (gpio_o[60]),
     .c0_ddr4_act_n (ddr4_act_n),
@@ -248,8 +251,6 @@ module system_top (
     .gpio1_t (gpio_t[63:32]),
     .iic_main_scl_io (iic_scl),
     .iic_main_sda_io (iic_sda),
-    .mb_intr_05 (1'b0),
-    .mb_intr_06 (1'b0),
     .mdio_mdc (mdio_mdc),
     .mdio_mdio_io (mdio_mdio),
     .phy_clk_clk_n (phy_clk_n),

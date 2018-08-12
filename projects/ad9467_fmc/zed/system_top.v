@@ -115,6 +115,8 @@ wire            iic_mux_sda_t_s;
     .dio_o ({gpio_i[31:0]}),
     .dio_p (gpio_bd));
 
+  assign gpio_i[63:32] = 'h0;
+
    ad_iobuf #(.DATA_WIDTH(2)) i_iobuf_iic_scl (
     .dio_t ({iic_mux_scl_t_s,iic_mux_scl_t_s}),
     .dio_i (iic_mux_scl_o_s),
@@ -181,18 +183,6 @@ system_wrapper i_system_wrapper (
     .iic_mux_sda_i (iic_mux_sda_i_s),
     .iic_mux_sda_o (iic_mux_sda_o_s),
     .iic_mux_sda_t (iic_mux_sda_t_s),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
-    .ps_intr_10 (1'b0),
-    .ps_intr_12 (1'b0),
     .otg_vbusoc (otg_vbusoc),
     .spdif (spdif),
     .adc_clk_in_n(adc_clk_in_n),
@@ -206,9 +196,19 @@ system_wrapper i_system_wrapper (
     .spi0_csn_i(1'b1),
     .spi0_csn_0_o(spi_csn[0]),
     .spi0_csn_1_o(spi_csn[1]),
+    .spi0_csn_2_o (),
     .spi0_sdi_i(spi_miso),
     .spi0_sdo_i(1'b0),
-    .spi0_sdo_o(spi_mosi));
+    .spi0_sdo_o(spi_mosi),
+    .spi1_clk_i(1'b0),
+    .spi1_clk_o (),
+    .spi1_csn_0_o (),
+    .spi1_csn_1_o (),
+    .spi1_csn_2_o (),
+    .spi1_csn_i(1'b1),
+    .spi1_sdi_i(1'b0),
+    .spi1_sdo_i(1'b0),
+    .spi1_sdo_o());
 
 endmodule
 

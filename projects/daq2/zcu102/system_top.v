@@ -154,32 +154,21 @@ module system_top (
   assign clkd_sync = gpio_o[38];
   assign gpio_bd_o = gpio_o[7:0];
 
-  assign gpio_i[94:44] = gpio_o[94:44];
+  assign gpio_i[94:44] = 'h0;
   assign gpio_i[43:43] = trig;
-  assign gpio_i[42:37] = gpio_o[42:37];
+  assign gpio_i[42:37] = 'h0;
   assign gpio_i[36:36] = adc_fdb;
   assign gpio_i[35:35] = adc_fda;
   assign gpio_i[34:34] = dac_irq;
   assign gpio_i[33:32] = clkd_status;
-  assign gpio_i[31:21] = gpio_o[31:21];
+  assign gpio_i[31:21] = 'h0;
   assign gpio_i[20: 8] = gpio_bd_i;
-  assign gpio_i[ 7: 0] = gpio_o[7:0];
+  assign gpio_i[ 7: 0] = 'h0;
 
   system_wrapper i_system_wrapper (
     .gpio_i (gpio_i),
     .gpio_o (gpio_o),
-    .ps_intr_00 (1'd0),
-    .ps_intr_01 (1'd0),
-    .ps_intr_02 (1'd0),
-    .ps_intr_03 (1'd0),
-    .ps_intr_04 (1'd0),
-    .ps_intr_05 (1'd0),
-    .ps_intr_06 (1'd0),
-    .ps_intr_07 (1'd0),
-    .ps_intr_08 (1'd0),
-    .ps_intr_09 (1'd0),
-    .ps_intr_14 (1'd0),
-    .ps_intr_15 (1'd0),
+    .gpio_t (),
     .rx_data_0_n (rx_data_n[0]),
     .rx_data_0_p (rx_data_p[0]),
     .rx_data_1_n (rx_data_n[1]),

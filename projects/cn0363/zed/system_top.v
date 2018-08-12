@@ -111,8 +111,8 @@ module system_top (
   assign gain1_o = gpio_o[33];
 
   assign gpio_i[34] = spi_sdi; // Interrupt
-  assign gpio_i[33] = gpio_o[33];
-  assign gpio_i[32] = gpio_o[32];
+  assign gpio_i[33] = 'h0;
+  assign gpio_i[32] = 'h0;
   assign led_clk_o = excitation;
 
   ad_iobuf #(
@@ -194,17 +194,6 @@ module system_top (
     .iic_mux_sda_i (iic_mux_sda_i_s),
     .iic_mux_sda_o (iic_mux_sda_o_s),
     .iic_mux_sda_t (iic_mux_sda_t_s),
-    .ps_intr_00 (1'b0),
-    .ps_intr_01 (1'b0),
-    .ps_intr_02 (1'b0),
-    .ps_intr_03 (1'b0),
-    .ps_intr_04 (1'b0),
-    .ps_intr_05 (1'b0),
-    .ps_intr_06 (1'b0),
-    .ps_intr_07 (1'b0),
-    .ps_intr_08 (1'b0),
-    .ps_intr_09 (1'b0),
-    .ps_intr_10 (1'b0),
     .spi_sdo (spi_sdo_o),
     .spi_sdo_t (spi_sdo_t),
     .spi_sdi (spi_sdi),
