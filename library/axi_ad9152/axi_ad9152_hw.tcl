@@ -20,6 +20,7 @@ ad_ip_files axi_ad9152 [list \
   $ad_hdl_dir/library/common/ad_dds_2.v \
   $ad_hdl_dir/library/common/ad_dds_1.v \
   $ad_hdl_dir/library/common/ad_dds.v \
+  $ad_hdl_dir/library/common/ad_perfect_shuffle.v \
   $ad_hdl_dir/library/common/ad_rst.v \
   $ad_hdl_dir/library/common/up_axi.v \
   $ad_hdl_dir/library/common/up_xfer_cntrl.v \
@@ -32,6 +33,7 @@ ad_ip_files axi_ad9152 [list \
   $ad_hdl_dir/library/jesd204/ad_ip_jesd204_tpl_dac/ad_ip_jesd204_tpl_dac_channel.v \
   $ad_hdl_dir/library/jesd204/ad_ip_jesd204_tpl_dac/ad_ip_jesd204_tpl_dac_core.v \
   $ad_hdl_dir/library/jesd204/ad_ip_jesd204_tpl_dac/ad_ip_jesd204_tpl_dac_framer.v \
+  $ad_hdl_dir/library/jesd204/ad_ip_jesd204_tpl_dac/ad_ip_jesd204_tpl_dac_pn.v \
   $ad_hdl_dir/library/jesd204/ad_ip_jesd204_tpl_dac/ad_ip_jesd204_tpl_dac_regmap.v \
   \
   axi_ad9152.v \

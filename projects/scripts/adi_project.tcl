@@ -7,7 +7,7 @@ variable p_prcfg_list
 variable p_prcfg_status
 
 if {![info exists REQUIRED_VIVADO_VERSION]} {
-  set REQUIRED_VIVADO_VERSION "2017.4.1"
+  set REQUIRED_VIVADO_VERSION "2018.2"
 }
 
 if {[info exists ::env(ADI_IGNORE_VERSION_CHECK)]} {
@@ -78,7 +78,7 @@ proc adi_project_xilinx {project_name {mode 0}} {
   }
   if [regexp "_zcu102$" $project_name] {
     set p_device "xczu9eg-ffvb1156-2-e"
-    set p_board "xilinx.com:zcu102:part0:3.1"
+    set p_board "xilinx.com:zcu102:part0:3.2"
     set sys_zynq 2
   }
 

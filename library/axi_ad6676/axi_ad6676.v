@@ -37,57 +37,58 @@
 
 module axi_ad6676 #(
 
-  parameter ID = 0) (
+  parameter ID = 0,
+  parameter NUM_LANES = 2) (
 
   // jesd interface
   // rx_clk is (line-rate/40)
 
-  input                   rx_clk,
-  input       [ 3:0]      rx_sof,
-  input                   rx_valid,
-  output                  rx_ready,
-  input       [63:0]      rx_data,
+  input                          rx_clk,
+  input       [ 3:0]             rx_sof,
+  input                          rx_valid,
+  output                         rx_ready,
+  input       [32*NUM_LANES-1:0] rx_data,
 
   // dma interface
 
-  output                  adc_clk,
-  output                  adc_valid_0,
-  output                  adc_enable_0,
-  output      [31:0]      adc_data_0,
-  output                  adc_valid_1,
-  output                  adc_enable_1,
-  output      [31:0]      adc_data_1,
-  input                   adc_dovf,
+  output                         adc_clk,
+  output                         adc_valid_0,
+  output                         adc_enable_0,
+  output      [31:0]             adc_data_0,
+  output                         adc_valid_1,
+  output                         adc_enable_1,
+  output      [31:0]             adc_data_1,
+  input                          adc_dovf,
 
   // axi interface
 
-  input                   s_axi_aclk,
-  input                   s_axi_aresetn,
-  input                   s_axi_awvalid,
-  input       [15:0]      s_axi_awaddr,
-  output                  s_axi_awready,
-  input                   s_axi_wvalid,
-  input       [31:0]      s_axi_wdata,
-  input       [ 3:0]      s_axi_wstrb,
-  output                  s_axi_wready,
-  output                  s_axi_bvalid,
-  output      [ 1:0]      s_axi_bresp,
-  input                   s_axi_bready,
-  input                   s_axi_arvalid,
-  input       [15:0]      s_axi_araddr,
-  output                  s_axi_arready,
-  output                  s_axi_rvalid,
-  output      [ 1:0]      s_axi_rresp,
-  output      [31:0]      s_axi_rdata,
-  input                   s_axi_rready,
-  input       [ 2:0]      s_axi_awprot,
-  input       [ 2:0]      s_axi_arprot);
+  input                          s_axi_aclk,
+  input                          s_axi_aresetn,
+  input                          s_axi_awvalid,
+  input       [15:0]             s_axi_awaddr,
+  output                         s_axi_awready,
+  input                          s_axi_wvalid,
+  input       [31:0]             s_axi_wdata,
+  input       [ 3:0]             s_axi_wstrb,
+  output                         s_axi_wready,
+  output                         s_axi_bvalid,
+  output      [ 1:0]             s_axi_bresp,
+  input                          s_axi_bready,
+  input                          s_axi_arvalid,
+  input       [15:0]             s_axi_araddr,
+  output                         s_axi_arready,
+  output                         s_axi_rvalid,
+  output      [ 1:0]             s_axi_rresp,
+  output      [31:0]             s_axi_rdata,
+  input                          s_axi_rready,
+  input       [ 2:0]             s_axi_awprot,
+  input       [ 2:0]             s_axi_arprot);
 
   assign adc_clk = rx_clk;
 
   ad_ip_jesd204_tpl_adc #(
     .ID (ID),
-    .NUM_LANES (2),
+    .NUM_LANES (NUM_LANES),
     .NUM_CHANNELS (2),
     .CHANNEL_WIDTH (16),
     .TWOS_COMPLEMENT (0)

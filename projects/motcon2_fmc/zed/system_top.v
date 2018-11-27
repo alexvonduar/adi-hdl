@@ -118,7 +118,6 @@ module system_top (
   input                   vauxn8,
   input                   vauxp0,
   input                   vauxp8,
-/*  muxaddr_out,*/
 
   output                  i2s_mclk,
   output                  i2s_bclk,
@@ -146,8 +145,6 @@ module system_top (
 
   input                   otg_vbusoc);
 
-/*  output  [ 3:0]  muxaddr_out;*/
-
   // internal signals
 
   wire    [63:0]  gpio_i;
@@ -174,8 +171,8 @@ module system_top (
   assign pwm_m2_dh_o    = 1'b0;
   assign pwm_m2_dl_o    = 1'b0;
 
-  assign gpio_i[63:35]  = 'h0;
-  assign gpio_i[32]     = 'h0;
+  assign gpio_i[63:35]  = gpio_o[63:35];
+  assign gpio_i[32]     = gpio_o[32];
 
   // instantiations
 
@@ -290,7 +287,6 @@ module system_top (
     .vaux0_v_p(vauxp0),
     .vaux8_v_n(vauxn8),
     .vaux8_v_p(vauxp8),
-    /*.muxaddr_out(muxaddr_out),*/
     .i2s_bclk (i2s_bclk),
     .i2s_lrclk (i2s_lrclk),
     .i2s_mclk (i2s_mclk),

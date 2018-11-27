@@ -33,10 +33,13 @@
 // ***************************************************************************
 // ***************************************************************************
 
+`timescale 1ns/100ps
+
 module dmac_2d_transfer #(
 
   parameter DMA_AXI_ADDR_WIDTH = 32,
   parameter DMA_LENGTH_WIDTH = 24,
+  parameter BYTES_PER_BURST_WIDTH = 7,
   parameter BYTES_PER_BEAT_WIDTH_SRC = 3,
   parameter BYTES_PER_BEAT_WIDTH_DEST = 3)(
 
@@ -53,8 +56,15 @@ module dmac_2d_transfer #(
   input [DMA_LENGTH_WIDTH-1:0] req_dest_stride,
   input [DMA_LENGTH_WIDTH-1:0] req_src_stride,
   input req_sync_transfer_start,
-  output reg req_eot,
   input req_last,
+
+  output reg req_eot,
+  output reg [BYTES_PER_BURST_WIDTH-1:0] req_measured_burst_length,
+  output reg req_response_partial,
+  output reg req_response_valid,
+  input req_response_ready,
+
+  input out_abort_req,
 
   output reg out_req_valid,
   input out_req_ready,
@@ -63,7 +73,13 @@ module dmac_2d_transfer #(
   output [DMA_LENGTH_WIDTH-1:0] out_req_length,
   output reg out_req_sync_transfer_start,
   output out_req_last,
-  input out_eot
+
+  input out_eot,
+  input [BYTES_PER_BURST_WIDTH-1:0] out_measured_burst_length,
+  input out_response_partial,
+  input out_response_valid,
+  output reg out_response_ready = 1'b1
+
 );
 
 reg [DMA_AXI_ADDR_WIDTH-1:BYTES_PER_BEAT_WIDTH_DEST] dest_address = 'h00;
@@ -96,7 +112,7 @@ always @(posedge req_aclk) begin
       req_id <= req_id + 1'b1;
     end
 
-    if (out_eot == 1'b1) begin
+    if (out_eot == 1'b1 && out_response_valid == 1'b1 && out_response_ready == 1'b1) begin
       eot_id <= eot_id + 1'b1;
       req_eot <= last_req[eot_id];
     end else begin
@@ -112,6 +128,31 @@ always @(posedge req_aclk) begin
 end
 
 always @(posedge req_aclk) begin
+  if (out_response_valid == 1'b1 && out_response_ready == 1'b1) begin
+    req_measured_burst_length <= out_measured_burst_length;
+    req_response_partial <= out_response_partial;
+  end
+end
+
+always @(posedge req_aclk) begin
+  if (out_response_valid == 1'b1 && out_response_ready == 1'b1) begin
+    req_response_valid <= 1'b1;
+  end else if (req_response_ready == 1'b1) begin
+    req_response_valid <= 1'b0;
+  end
+end
+
+always @(posedge req_aclk) begin
+  if (req_aresetn == 1'b0) begin
+    out_response_ready <= 1'b1;
+  end else if (out_response_ready == 1'b1) begin
+    out_response_ready <= ~out_response_valid;
+  end else if (req_response_ready == 1'b1) begin
+    out_response_ready <= 1'b1;
+  end
+end
+
+always @(posedge req_aclk) begin
   if (req_ready == 1'b1 && req_valid == 1'b1) begin
     dest_address <= req_dest_address;
     src_address <= req_src_address;
@@ -121,6 +162,8 @@ always @(posedge req_aclk) begin
     src_stride <= req_src_stride;
     out_req_sync_transfer_start <= req_sync_transfer_start;
     gen_last <= req_last;
+  end else if (out_abort_req == 1'b1) begin
+    y_length <= 0;
   end else if (out_req_valid == 1'b1 && out_req_ready == 1'b1) begin
     dest_address <= dest_address + dest_stride[DMA_LENGTH_WIDTH-1:BYTES_PER_BEAT_WIDTH_DEST];
     src_address <= src_address + src_stride[DMA_LENGTH_WIDTH-1:BYTES_PER_BEAT_WIDTH_SRC];

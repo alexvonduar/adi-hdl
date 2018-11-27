@@ -65,7 +65,7 @@ module util_dacfifo_bypass #(
 
   localparam  MEM_RATIO = (DMA_DATA_WIDTH > DAC_DATA_WIDTH) ? DMA_DATA_WIDTH/DAC_DATA_WIDTH :
                                                               DAC_DATA_WIDTH/DMA_DATA_WIDTH;
-  localparam  DAC_ADDRESS_WIDTH = 10;
+  localparam  DAC_ADDRESS_WIDTH = 4;
   localparam  DMA_ADDRESS_WIDTH = (MEM_RATIO == 1) ? DAC_ADDRESS_WIDTH :
                                   (MEM_RATIO == 2) ? ((DMA_DATA_WIDTH > DAC_DATA_WIDTH) ? (DAC_ADDRESS_WIDTH - 1) : (DAC_ADDRESS_WIDTH + 1)) :
                                   (MEM_RATIO == 4) ? ((DMA_DATA_WIDTH > DAC_DATA_WIDTH) ? (DAC_ADDRESS_WIDTH - 2) : (DAC_ADDRESS_WIDTH + 2)) :
@@ -87,8 +87,6 @@ module util_dacfifo_bypass #(
   reg     [(DMA_ADDRESS_WIDTH-1):0]     dac_mem_waddr_m1 = 'd0;
   reg     [(DMA_ADDRESS_WIDTH-1):0]     dac_mem_waddr_m2 = 'd0;
   reg     [(DMA_ADDRESS_WIDTH-1):0]     dac_mem_waddr = 'd0;
-  reg                                   dac_xfer_out = 1'b0;
-  reg                                   dac_xfer_out_m1 = 1'b0;
 
   // internal signals
 
@@ -131,7 +129,7 @@ module util_dacfifo_bypass #(
 
   // write address generation for the asymmetric FIFO
 
-  assign dma_mem_wea_s = dma_xfer_req & dma_valid & dma_ready;
+  assign dma_mem_wea_s = dma_valid & dma_ready;
 
   always @(posedge dma_clk) begin
     if (dma_rst == 1'b1) begin
@@ -249,12 +247,8 @@ module util_dacfifo_bypass #(
 
   always @(posedge dac_clk) begin
     if (dac_rst == 1'b1) begin
-      dac_xfer_out_m1 <= 1'b0;
-      dac_xfer_out <= 1'b0;
       dac_dunf <= 1'b0;
     end else begin
-      dac_xfer_out_m1 <= dma_xfer_req;
-      dac_xfer_out <= dac_xfer_out_m1;
       if (dac_valid == 1'b1) begin
         dac_dunf <= dac_mem_empty_s;
       end

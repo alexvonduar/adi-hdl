@@ -27,21 +27,27 @@ module ad_ip_jesd204_tpl_dac_core #(
   parameter DATAPATH_DISABLE = 0,
   parameter NUM_LANES = 1,
   parameter NUM_CHANNELS = 1,
+  parameter BITS_PER_SAMPLE = 16,
+  parameter CONVERTER_RESOLUTION = 16,
+  parameter SAMPLES_PER_FRAME = 1,
+  parameter OCTETS_PER_BEAT = 4,
   parameter DATA_PATH_WIDTH = 4,
-  parameter DAC_DDS_TYPE = 1,
-  parameter DAC_DDS_CORDIC_DW = 16,
-  parameter DAC_DDS_CORDIC_PHASE_DW = 16
+  parameter LINK_DATA_WIDTH = NUM_LANES * OCTETS_PER_BEAT * 8,
+  parameter DMA_DATA_WIDTH = DATA_PATH_WIDTH * 16 * NUM_CHANNELS,
+  parameter DDS_TYPE = 1,
+  parameter DDS_CORDIC_DW = 16,
+  parameter DDS_CORDIC_PHASE_DW = 16
 ) (
   // dac interface
   input clk,
 
   output link_valid,
   input link_ready,
-  output [NUM_LANES*32-1:0] link_data,
+  output [LINK_DATA_WIDTH-1:0] link_data,
 
   // dma interface
   output [NUM_CHANNELS-1:0] dac_valid,
-  input [NUM_LANES*32-1:0] dac_ddata,
+  input [DMA_DATA_WIDTH-1:0] dac_ddata,
 
   // Configuration interface
 
@@ -63,41 +69,68 @@ module ad_ip_jesd204_tpl_dac_core #(
   output [NUM_CHANNELS-1:0] enable
 );
 
+  localparam DAC_CDW = CONVERTER_RESOLUTION * DATA_PATH_WIDTH;
+  localparam DAC_DATA_WIDTH = DAC_CDW * NUM_CHANNELS;
+  localparam DMA_CDW = DATA_PATH_WIDTH * 16;
+
   assign link_valid = 1'b1;
 
-  wire [NUM_LANES*32-1:0] dac_data_s;
+  wire [DAC_DATA_WIDTH-1:0] dac_data_s;
+
+  wire [DAC_CDW-1:0] pn7_data;
+  wire [DAC_CDW-1:0] pn15_data;
 
   // device interface
 
   ad_ip_jesd204_tpl_dac_framer #(
     .NUM_LANES (NUM_LANES),
-    .NUM_CHANNELS (NUM_CHANNELS)
+    .NUM_CHANNELS (NUM_CHANNELS),
+    .BITS_PER_SAMPLE (BITS_PER_SAMPLE),
+    .CONVERTER_RESOLUTION (CONVERTER_RESOLUTION),
+    .SAMPLES_PER_FRAME (SAMPLES_PER_FRAME),
+    .OCTETS_PER_BEAT (OCTETS_PER_BEAT),
+    .LINK_DATA_WIDTH (LINK_DATA_WIDTH),
+    .DAC_DATA_WIDTH (DAC_DATA_WIDTH)
   ) i_framer (
-    .clk (clk),
     .link_data (link_data),
     .dac_data (dac_data_s)
+  );
+
+  // PN generator
+  ad_ip_jesd204_tpl_dac_pn #(
+    .DATA_PATH_WIDTH (DATA_PATH_WIDTH),
+    .CONVERTER_RESOLUTION (CONVERTER_RESOLUTION)
+  ) i_pn_gen (
+    .clk (clk),
+    .reset (dac_sync),
+
+    .pn7_data (pn7_data),
+    .pn15_data (pn15_data)
   );
 
   // dac valid
 
   assign dac_valid = {NUM_CHANNELS{1'b1}};
 
-  localparam CDW = DATA_PATH_WIDTH * 16;
 
   generate
   genvar i;
   for (i = 0; i < NUM_CHANNELS; i = i + 1) begin: g_channel
     ad_ip_jesd204_tpl_dac_channel #(
       .DATA_PATH_WIDTH (DATA_PATH_WIDTH),
+      .CONVERTER_RESOLUTION (CONVERTER_RESOLUTION),
       .DATAPATH_DISABLE (DATAPATH_DISABLE),
-      .DAC_DDS_TYPE (DAC_DDS_TYPE),
-      .DAC_DDS_CORDIC_DW (DAC_DDS_CORDIC_DW),
-      .DAC_DDS_CORDIC_PHASE_DW (DAC_DDS_CORDIC_PHASE_DW)
+      .DDS_TYPE (DDS_TYPE),
+      .DDS_CORDIC_DW (DDS_CORDIC_DW),
+      .DDS_CORDIC_PHASE_DW (DDS_CORDIC_PHASE_DW)
     ) i_channel (
       .clk (clk),
       .dac_enable (enable[i]),
-      .dac_data (dac_data_s[CDW*i+:CDW]),
-      .dma_data (dac_ddata[CDW*i+:CDW]),
+      .dac_data (dac_data_s[DAC_CDW*i+:DAC_CDW]),
+      .dma_data (dac_ddata[DMA_CDW*i+:DMA_CDW]),
+
+      .pn7_data (pn7_data),
+      .pn15_data (pn15_data),
 
       .dac_data_sync (dac_sync),
       .dac_dds_format (dac_dds_format),

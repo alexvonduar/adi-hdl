@@ -35,7 +35,7 @@ set_property driver_value 0 [ipx::get_ports *vsync* -of_objects [ipx::current_co
 set_property driver_value 0 [ipx::get_ports *data* -of_objects [ipx::current_core]]
 set_property driver_value 0 [ipx::get_ports *es_data* -of_objects [ipx::current_core]]
 
-set_property driver_value 0 [ipx::get_ports *vdma_fs* -of_objects [ipx::current_core]]
+set_property driver_value 0 [ipx::get_ports *vdma_end_of_frame* -of_objects [ipx::current_core]]
 set_property driver_value 0 [ipx::get_ports *vdma_valid* -of_objects [ipx::current_core]]
 set_property driver_value 0 [ipx::get_ports *vdma_data* -of_objects [ipx::current_core]]
 set_property driver_value 0 [ipx::get_ports *vdma_ready* -of_objects [ipx::current_core]]
@@ -54,9 +54,19 @@ set_property enablement_dependency {spirit:decode(id('MODELPARAM_VALUE.INTERFACE
 set_property enablement_dependency {spirit:decode(id('MODELPARAM_VALUE.INTERFACE')) == "16_BIT_EMBEDDED_SYNC"} \
   [ipx::get_ports *hdmi_16_es_data* -of_objects [ipx::current_core]]
 
+adi_add_bus "s_axis" "slave" \
+         "xilinx.com:interface:axis_rtl:1.0" \
+         "xilinx.com:interface:axis:1.0" \
+         [list {"vdma_ready" "TREADY"} \
+           {"vdma_valid" "TVALID"} \
+           {"vdma_data" "TDATA"} \
+           {"vdma_end_of_frame" "TLAST"} ]
+
 ipx::infer_bus_interface hdmi_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
 ipx::infer_bus_interface hdmi_out_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
 ipx::infer_bus_interface vdma_clk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
+
+ipx::associate_bus_interfaces -busif s_axis -clock vdma_clk [ipx::current_core]
 
 ipx::save_core [ipx::current_core]
 

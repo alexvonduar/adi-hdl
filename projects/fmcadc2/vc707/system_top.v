@@ -149,7 +149,7 @@ module system_top (
     .spi_adf4355 (gpio_o[36]),
     .spi_adf4355_ce (gpio_o[37]),
     .spi_clk (spi_clk),
-    .spi_csn (spi_csn),
+    .spi_csn (spi_csn[2:0]),
     .spi_mosi (spi_mosi),
     .spi_miso (spi_miso),
     .spi_adc_csn (spi_adc_csn),
@@ -172,8 +172,8 @@ module system_top (
     .dio_o (gpio_i[20:0]),
     .dio_p (gpio_bd));
 
-  assign gpio_i[63:34] = 'h0;
-  assign gpio_i[31:21] = 'h0;
+  assign gpio_i[63:34] = gpio_o[63:34];
+  assign gpio_i[31:21] = gpio_o[31:21];
 
   ad_sysref_gen i_sysref (
     .core_clk (rx_clk),

@@ -37,6 +37,7 @@ for {set n 0} {$n < 16} {incr n} {
     "enb                 up_es_enb_${n}         "\
     "addr                up_es_addr_${n}        "\
     "wr                  up_es_wr_${n}          "\
+    "reset               up_es_reset_${n}       "\
     "wdata               up_es_wdata_${n}       "\
     "rdata               up_es_rdata_${n}       "\
     "ready               up_es_ready_${n}       "]
@@ -50,6 +51,9 @@ for {set n 0} {$n < 16} {incr n} {
     "rate                up_ch_rate_${n}        "\
     "sys_clk_sel         up_ch_sys_clk_sel_${n} "\
     "out_clk_sel         up_ch_out_clk_sel_${n} "\
+    "tx_diffctrl         up_ch_tx_diffctrl_${n}  "\
+    "tx_postcursor       up_ch_tx_postcursor_${n} "\
+    "tx_precursor        up_ch_tx_precursor_${n} "\
     "enb                 up_ch_enb_${n}         "\
     "addr                up_ch_addr_${n}        "\
     "wr                  up_ch_wr_${n}          "\
@@ -61,7 +65,6 @@ for {set n 0} {$n < 16} {incr n} {
 
 ipx::infer_bus_interface s_axi_aclk xilinx.com:signal:clock_rtl:1.0 [ipx::current_core]
 ipx::infer_bus_interface s_axi_aresetn xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::infer_bus_interface up_pll_rst xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
 
 set_property value s_axi:m_axi [ipx::get_bus_parameters ASSOCIATED_BUSIF \
   -of_objects [ipx::get_bus_interfaces s_axi_aclk -of_objects [ipx::current_core]]]

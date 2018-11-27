@@ -38,6 +38,8 @@
  * if necessary.
  */
 
+`timescale 1ns/100ps
+
 module axi_dmac_resize_src #(
   parameter DATA_WIDTH_SRC = 64,
   parameter DATA_WIDTH_MEM = 64
@@ -72,8 +74,12 @@ end else begin
       valid <= 1'b0;
       mask <= 'h1;
     end else if (src_data_valid == 1'b1) begin
-      valid <= mask[RATIO-1];
-      mask <= {mask[RATIO-2:0],mask[RATIO-1]};
+      valid <= mask[RATIO-1] || src_data_last;
+      if (src_data_last) begin
+        mask <= 'h1;
+      end else begin
+        mask <= {mask[RATIO-2:0],mask[RATIO-1]};
+      end
     end else begin
       valid <= 1'b0;
     end

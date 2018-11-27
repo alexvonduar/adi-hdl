@@ -120,9 +120,6 @@ module system_top (
   wire    [63:0]  gpio_o;
   wire    [63:0]  gpio_t;
   wire    [ 7:0]  spi_csn;
-  wire            spi_clk;
-  wire            spi_mosi;
-  wire            spi_miso;
 
   // default logic
 
@@ -148,8 +145,8 @@ module system_top (
     .dio_o (gpio_i[20:0]),
     .dio_p (gpio_bd));
 
-  assign gpio_i[63:47] = 'h0;
-  assign gpio_i[31:21] = 'h0;
+  assign gpio_i[63:47] = gpio_o[63:47];
+  assign gpio_i[31:21] = gpio_o[31:21];
 
   system_wrapper i_system_wrapper (
     .ddr3_addr (ddr3_addr),

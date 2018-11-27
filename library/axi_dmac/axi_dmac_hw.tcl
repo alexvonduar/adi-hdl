@@ -16,8 +16,10 @@ set_module_property VALIDATION_CALLBACK axi_dmac_validate
 
 ad_ip_files axi_dmac [list \
   $ad_hdl_dir/library/util_cdc/sync_bits.v \
+  $ad_hdl_dir/library/util_cdc/sync_event.v \
   $ad_hdl_dir/library/common/up_axi.v \
   $ad_hdl_dir/library/util_axis_fifo/util_axis_fifo.v \
+  $ad_hdl_dir/library/util_axis_fifo/address_sync.v \
   $ad_hdl_dir/library/common/ad_mem.v \
   inc_id.vh \
   resp.vh \
@@ -27,6 +29,7 @@ ad_ip_files axi_dmac [list \
   axi_dmac_reset_manager.v \
   axi_dmac_resize_dest.v \
   axi_dmac_resize_src.v \
+  axi_dmac_response_manager.v \
   axi_dmac_transfer.v \
   address_generator.v \
   data_mover.v \
@@ -91,7 +94,7 @@ foreach {suffix group} { \
     { "0:Memory-Mapped AXI" "1:Streaming AXI" "2:FIFO Interface" }
   set_parameter_property DMA_TYPE_$suffix GROUP $group
 
-  add_parameter  DMA_AXI_PROTOCOL_$suffix INTEGER 0
+  add_parameter  DMA_AXI_PROTOCOL_$suffix INTEGER 1
   set_parameter_property DMA_AXI_PROTOCOL_$suffix DISPLAY_NAME "AXI Protocol"
   set_parameter_property DMA_AXI_PROTOCOL_$suffix HDL_PARAMETER true
   set_parameter_property DMA_AXI_PROTOCOL_$suffix ALLOWED_RANGES { "0:AXI4" "1:AXI3" }
@@ -366,13 +369,13 @@ proc add_axi_master_interface {axi_type port suffix} {
   # Some signals are mandatory in Altera's implementation of AXI3
   # awid, awlock, wid, bid, arid, arlock, rid, rlast
   # Hide them in AXI4
-  add_interface_port $port ${port}_awid awid Output 4
+  add_interface_port $port ${port}_awid awid Output 1
   add_interface_port $port ${port}_awlock awlock Output "1+DMA_AXI_PROTOCOL_${suffix}"
-  add_interface_port $port ${port}_wid wid Output 4
-  add_interface_port $port ${port}_arid arid Output 4
+  add_interface_port $port ${port}_wid wid Output 1
+  add_interface_port $port ${port}_arid arid Output 1
   add_interface_port $port ${port}_arlock arlock Output "1+DMA_AXI_PROTOCOL_${suffix}"
-  add_interface_port $port ${port}_rid rid Input 4
-  add_interface_port $port ${port}_bid bid Input 4
+  add_interface_port $port ${port}_rid rid Input 1
+  add_interface_port $port ${port}_bid bid Input 1
   add_interface_port $port ${port}_rlast rlast Input 1
   if {$axi_type == "axi4"} {
     set_port_property ${port}_awid TERMINATION true

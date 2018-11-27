@@ -26,16 +26,22 @@
 module ad_ip_jesd204_tpl_dac_channel #(
   parameter DATAPATH_DISABLE = 0,
   parameter DATA_PATH_WIDTH = 4,
-  parameter DAC_DDS_TYPE = 1,
-  parameter DAC_DDS_CORDIC_DW = 16,
-  parameter DAC_DDS_CORDIC_PHASE_DW = 16
+  parameter CONVERTER_RESOLUTION = 16,
+  parameter DDS_TYPE = 1,
+  parameter DDS_CORDIC_DW = 16,
+  parameter DDS_CORDIC_PHASE_DW = 16
 ) (
   // dac interface
 
   input clk,
 
   input [DATA_PATH_WIDTH*16-1:0] dma_data,
-  output reg [DATA_PATH_WIDTH*16-1:0] dac_data = 'h00,
+  output reg [DATA_PATH_WIDTH*CONVERTER_RESOLUTION-1:0] dac_data = 'h00,
+
+  // PN data
+
+  input [DATA_PATH_WIDTH*CONVERTER_RESOLUTION-1:0] pn7_data,
+  input [DATA_PATH_WIDTH*CONVERTER_RESOLUTION-1:0] pn15_data,
 
   // Configuration
 
@@ -57,43 +63,38 @@ module ad_ip_jesd204_tpl_dac_channel #(
   output reg dac_enable = 1'b0
 );
 
-  localparam DW = DATA_PATH_WIDTH * 16 - 1;
-
-  // internal registers
-
-  reg [DW:0] dac_pn7_data = 'd0;
-  reg [DW:0] dac_pn15_data = 'd0;
-  reg [15:0] dac_dds_phase_0[0:DATA_PATH_WIDTH-1];
-  reg [15:0] dac_dds_phase_1[0:DATA_PATH_WIDTH-1];
+  localparam CR = CONVERTER_RESOLUTION;
+  localparam CHANNEL_DATA_WIDTH = DATA_PATH_WIDTH * CR;
 
   // internal signals
 
-  wire [DW:0] dac_dds_data_s;
-
-  wire [DW:0] pn15;
-  wire [DW+15:0] pn15_full_state;
-  wire [DW:0] dac_pn15_data_s;
-  wire [DW:0] pn7;
-  wire [DW+7:0] pn7_full_state;
-  wire [DW:0] dac_pn7_data_s;
-
-  // PN15 x^15 + x^14 + 1
-  assign pn15 = pn15_full_state[15+:DW+1] ^ pn15_full_state[14+:DW+1];
-  assign pn15_full_state = {dac_pn15_data[14:0],pn15};
-
-  // PN7 x^7 + x^6 + 1
-  assign pn7 = pn7_full_state[7+:DW+1] ^ pn7_full_state[6+:DW+1];
-  assign pn7_full_state = {dac_pn7_data[6:0],pn7};
+  wire [CHANNEL_DATA_WIDTH-1:0] dac_dds_data_s;
+  wire [CHANNEL_DATA_WIDTH-1:0] dac_dma_data_s;
+  wire [CHANNEL_DATA_WIDTH-1:0] dac_pat_data_s;
 
   generate
-  genvar i;
-  for (i = 0; i < DATA_PATH_WIDTH; i = i + 1) begin: g_pn_swizzle
-    localparam src_lsb = i * 16;
-    localparam dst_lsb = (DATA_PATH_WIDTH - i - 1) * 16;
+    if (DATA_PATH_WIDTH > 1) begin
+      assign dac_pat_data_s = {DATA_PATH_WIDTH/2{dac_pat_data_1[0+:CR],dac_pat_data_0[0+:CR]}};
+    end else begin
+      reg dac_pat_data_sel = 1'b0;
 
-    assign dac_pn15_data_s[dst_lsb+:16] = dac_pn15_data[src_lsb+:16];
-    assign dac_pn7_data_s[dst_lsb+:16] = dac_pn7_data[src_lsb+:16];
-  end
+      always @(posedge clk) begin
+        if (dac_data_sync == 1'b1) begin
+          dac_pat_data_sel <= 1'b0;
+        end else begin
+          dac_pat_data_sel <= ~dac_pat_data_sel;
+        end
+      end
+
+      assign dac_pat_data_s = dac_pat_data_sel == 1'b0 ?
+        dac_pat_data_0[0+:CR] : dac_pat_data_1[0+:CR];
+    end
+
+    genvar i;
+    /* Data is expected to be LSB aligned, drop unused MSBs */
+    for (i = 0; i < DATA_PATH_WIDTH; i = i + 1) begin: g_dac_dma_data
+      assign dac_dma_data_s[CR*i+:CR] = dma_data[16*i+:CR];
+    end
   endgenerate
 
   // dac data select
@@ -101,38 +102,26 @@ module ad_ip_jesd204_tpl_dac_channel #(
   always @(posedge clk) begin
     dac_enable <= (dac_data_sel == 4'h2) ? 1'b1 : 1'b0;
     case (dac_data_sel)
-      4'h7: dac_data <= dac_pn15_data_s;
-      4'h6: dac_data <= dac_pn7_data_s;
-      4'h5: dac_data <= ~dac_pn15_data_s;
-      4'h4: dac_data <= ~dac_pn7_data_s;
+      4'h7: dac_data <= pn15_data;
+      4'h6: dac_data <= pn7_data;
+      4'h5: dac_data <= ~pn15_data;
+      4'h4: dac_data <= ~pn7_data;
       4'h3: dac_data <= 'h00;
-      4'h2: dac_data <= dma_data;
-      4'h1: dac_data <= {DATA_PATH_WIDTH/2{dac_pat_data_1, dac_pat_data_0}};
+      4'h2: dac_data <= dac_dma_data_s;
+      4'h1: dac_data <= dac_pat_data_s;
       default: dac_data <= dac_dds_data_s;
     endcase
-  end
-
-  // pn registers
-
-  always @(posedge clk) begin
-    if (dac_data_sync == 1'b1) begin
-      dac_pn15_data <= {DW+1{1'd1}};
-      dac_pn7_data <= {DW+1{1'd1}};
-    end else begin
-      dac_pn15_data <= pn15;
-      dac_pn7_data <= pn7;
-    end
   end
 
   // dds
 
     ad_dds #(
     .DISABLE (DATAPATH_DISABLE),
-    .DDS_DW (16),
+    .DDS_DW (CONVERTER_RESOLUTION),
     .PHASE_DW (16),
-    .DDS_TYPE (DAC_DDS_TYPE),
-    .CORDIC_DW (DAC_DDS_CORDIC_DW),
-    .CORDIC_PHASE_DW (DAC_DDS_CORDIC_PHASE_DW),
+    .DDS_TYPE (DDS_TYPE),
+    .CORDIC_DW (DDS_CORDIC_DW),
+    .CORDIC_PHASE_DW (DDS_CORDIC_PHASE_DW),
     .CLK_RATIO (DATA_PATH_WIDTH))
   i_dds (
     .clk (clk),

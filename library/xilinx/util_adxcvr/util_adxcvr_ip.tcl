@@ -108,48 +108,6 @@ ipx::infer_bus_interface tx_clk_15 xilinx.com:signal:clock_rtl:1.0 [ipx::current
 
 ipx::infer_bus_interface up_rstn xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
 
-ipx::infer_bus_interface up_cpll_rst_0 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_0 -reset up_cpll_rst_0 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_1 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_1 -reset up_cpll_rst_1 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_2 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_2 -reset up_cpll_rst_2 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_3 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_3 -reset up_cpll_rst_3 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_4 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_4 -reset up_cpll_rst_4 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_5 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_5 -reset up_cpll_rst_5 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_6 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_6 -reset up_cpll_rst_6 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_7 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_7 -reset up_cpll_rst_7 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_8 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_8 -reset up_cpll_rst_8 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_9 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_9 -reset up_cpll_rst_9 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_10 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_10 -reset up_cpll_rst_10 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_11 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_11 -reset up_cpll_rst_11 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_12 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_12 -reset up_cpll_rst_12 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_13 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_13 -reset up_cpll_rst_13 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_14 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_14 -reset up_cpll_rst_14 -clear [ipx::current_core]
-ipx::infer_bus_interface up_cpll_rst_15 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_15 -reset up_cpll_rst_15 -clear [ipx::current_core]
-
-ipx::infer_bus_interface up_qpll_rst_0 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_0 -reset up_qpll_rst_0 -clear [ipx::current_core]
-ipx::infer_bus_interface up_qpll_rst_4 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_4 -reset up_qpll_rst_4 -clear [ipx::current_core]
-ipx::infer_bus_interface up_qpll_rst_8 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_8 -reset up_qpll_rst_8 -clear [ipx::current_core]
-ipx::infer_bus_interface up_qpll_rst_12 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
-ipx::associate_bus_interfaces -clock cpll_ref_clk_12 -reset up_qpll_rst_12 -clear [ipx::current_core]
-
 ipx::infer_bus_interface up_rx_rst_0 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
 ipx::infer_bus_interface up_rx_rst_1 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
 ipx::infer_bus_interface up_rx_rst_2 xilinx.com:signal:reset_rtl:1.0 [ipx::current_core]
@@ -203,6 +161,7 @@ for {set n 0} {$n < 16} {incr n} {
     "wr                  up_es_wr_${n}          "\
     "wdata               up_es_wdata_${n}       "\
     "rdata               up_es_rdata_${n}       "\
+    "reset               up_es_reset_${n}       "\
     "ready               up_es_ready_${n}       "]
 
   adi_if_infer_bus analog.com:interface:if_xcvr_ch slave up_rx_${n} [list \
@@ -230,6 +189,9 @@ for {set n 0} {$n < 16} {incr n} {
     "rate                up_tx_rate_${n}        "\
     "sys_clk_sel         up_tx_sys_clk_sel_${n} "\
     "out_clk_sel         up_tx_out_clk_sel_${n} "\
+    "tx_diffctrl         up_tx_diffctrl_${n}     "\
+    "tx_postcursor       up_tx_postcursor_${n}   "\
+    "tx_precursor        up_tx_precursor_${n}    "\
     "enb                 up_tx_enb_${n}         "\
     "addr                up_tx_addr_${n}        "\
     "wr                  up_tx_wr_${n}          "\

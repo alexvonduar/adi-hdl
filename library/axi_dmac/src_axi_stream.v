@@ -33,6 +33,8 @@
 // ***************************************************************************
 // ***************************************************************************
 
+`timescale 1ns/100ps
+
 module dmac_src_axi_stream #(
 
   parameter ID_WIDTH = 3,
@@ -50,6 +52,19 @@ module dmac_src_axi_stream #(
   output [ID_WIDTH-1:0] response_id,
   input eot,
 
+  output rewind_req_valid,
+  input rewind_req_ready,
+  output [ID_WIDTH+3-1:0] rewind_req_data,
+
+  output                             bl_valid,
+  input                              bl_ready,
+  output [BEATS_PER_BURST_WIDTH-1:0] measured_last_burst_length,
+
+  output block_descr_to_dst,
+
+  output [ID_WIDTH-1:0] source_id,
+  output source_eot,
+
   output s_axis_ready,
   input s_axis_valid,
   input [S_AXIS_DATA_WIDTH-1:0] s_axis_data,
@@ -60,6 +75,7 @@ module dmac_src_axi_stream #(
   output fifo_valid,
   output [S_AXIS_DATA_WIDTH-1:0] fifo_data,
   output fifo_last,
+  output fifo_partial_burst,
 
   input req_valid,
   output req_ready,
@@ -85,6 +101,19 @@ dmac_data_mover # (
   .response_id(response_id),
   .eot(eot),
 
+  .rewind_req_valid(rewind_req_valid),
+  .rewind_req_ready(rewind_req_ready),
+  .rewind_req_data(rewind_req_data),
+
+  .bl_valid(bl_valid),
+  .bl_ready(bl_ready),
+  .measured_last_burst_length(measured_last_burst_length),
+
+  .block_descr_to_dst(block_descr_to_dst),
+
+  .source_id(source_id),
+  .source_eot(source_eot),
+
   .req_valid(req_valid),
   .req_ready(req_ready),
   .req_last_burst_length(req_last_burst_length),
@@ -99,7 +128,8 @@ dmac_data_mover # (
 
   .m_axi_valid(fifo_valid),
   .m_axi_data(fifo_data),
-  .m_axi_last(fifo_last)
+  .m_axi_last(fifo_last),
+  .m_axi_partial_burst(fifo_partial_burst)
 );
 
 endmodule

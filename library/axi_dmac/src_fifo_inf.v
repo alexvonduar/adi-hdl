@@ -33,6 +33,8 @@
 // ***************************************************************************
 // ***************************************************************************
 
+`timescale 1ns/100ps
+
 module dmac_src_fifo_inf #(
 
   parameter ID_WIDTH = 3,
@@ -48,6 +50,10 @@ module dmac_src_fifo_inf #(
   input [ID_WIDTH-1:0] request_id,
   output [ID_WIDTH-1:0] response_id,
   input eot,
+
+  output bl_valid,
+  input bl_ready,
+  output [BEATS_PER_BURST_WIDTH-1:0] measured_last_burst_length,
 
   input en,
   input [DATA_WIDTH-1:0] din,
@@ -94,6 +100,10 @@ dmac_data_mover # (
   .request_id(request_id),
   .response_id(response_id),
   .eot(eot),
+
+  .bl_valid(bl_valid),
+  .bl_ready(bl_ready),
+  .measured_last_burst_length(measured_last_burst_length),
 
   .req_valid(req_valid),
   .req_ready(req_ready),

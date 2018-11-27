@@ -69,8 +69,8 @@ module system_top (
 
   // internal signals
 
-  wire    [95:0]  gpio_i;
-  wire    [95:0]  gpio_o;
+  wire    [94:0]  gpio_i;
+  wire    [94:0]  gpio_o;
   wire    [ 2:0]  spi0_csn;
 
   // defaults
@@ -81,9 +81,9 @@ module system_top (
   assign gpio_ctl = gpio_o[43:40];
   assign gpio_bd_o = gpio_o[20:13];
 
-  assign gpio_i[95:40] = 'h0;
+  assign gpio_i[94:40] = gpio_o[94:40];
   assign gpio_i[39:32] = gpio_status;
-  assign gpio_i[31:13] = 'h0;
+  assign gpio_i[31:13] = gpio_o[31:13];
   assign gpio_i[12: 0] = gpio_bd_i;
 
   assign spi_csn = spi0_csn[0];
