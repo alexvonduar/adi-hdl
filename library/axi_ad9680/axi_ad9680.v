@@ -64,7 +64,7 @@ module axi_ad9680 #(
   input                   s_axi_aclk,
   input                   s_axi_aresetn,
   input                   s_axi_awvalid,
-  input       [15:0]      s_axi_awaddr,
+  input       [11:0]      s_axi_awaddr,
   input       [ 2:0]      s_axi_awprot,
   output                  s_axi_awready,
   input                   s_axi_wvalid,
@@ -75,7 +75,7 @@ module axi_ad9680 #(
   output      [ 1:0]      s_axi_bresp,
   input                   s_axi_bready,
   input                   s_axi_arvalid,
-  input       [15:0]      s_axi_araddr,
+  input       [11:0]      s_axi_araddr,
   input       [ 2:0]      s_axi_arprot,
   output                  s_axi_arready,
   output                  s_axi_rvalid,
@@ -87,9 +87,12 @@ module axi_ad9680 #(
 
   ad_ip_jesd204_tpl_adc #(
     .ID (ID),
-    .NUM_CHANNELS (2),
-    .CHANNEL_WIDTH (14),
     .NUM_LANES (4),
+    .NUM_CHANNELS (2),
+    .SAMPLES_PER_FRAME (1),
+    .CONVERTER_RESOLUTION (14),
+    .BITS_PER_SAMPLE (16),
+    .OCTETS_PER_BEAT (4),
     .TWOS_COMPLEMENT (1)
   ) i_adc_jesd204 (
     .link_clk (rx_clk),
