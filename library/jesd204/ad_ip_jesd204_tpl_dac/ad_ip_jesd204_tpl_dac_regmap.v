@@ -26,7 +26,8 @@
 module ad_ip_jesd204_tpl_dac_regmap #(
   parameter ID = 0,
   parameter NUM_CHANNELS = 2,
-  parameter DATA_PATH_WIDTH = 16
+  parameter DATA_PATH_WIDTH = 16,
+  parameter NUM_PROFILES = 1    // Number of supported JESD profiles
 ) (
   input s_axi_aclk,
   input s_axi_aresetn,
@@ -72,7 +73,17 @@ module ad_ip_jesd204_tpl_dac_regmap #(
   output [NUM_CHANNELS*16-1:0] dac_dds_incr_1,
 
   output [NUM_CHANNELS*16-1:0] dac_pat_data_0,
-  output [NUM_CHANNELS*16-1:0] dac_pat_data_1
+  output [NUM_CHANNELS*16-1:0] dac_pat_data_1,
+
+  // Framer interface
+  input [NUM_PROFILES*8-1: 0] jesd_m,
+  input [NUM_PROFILES*8-1: 0] jesd_l,
+  input [NUM_PROFILES*8-1: 0] jesd_s,
+  input [NUM_PROFILES*8-1: 0] jesd_f,
+  input [NUM_PROFILES*8-1: 0] jesd_n,
+  input [NUM_PROFILES*8-1: 0] jesd_np,
+
+  output [$clog2(NUM_PROFILES):0] up_profile_sel
 );
 
   // internal registers
@@ -83,13 +94,13 @@ module ad_ip_jesd204_tpl_dac_regmap #(
 
 
   wire up_wreq_s;
-  wire [13:0] up_waddr_s;
+  wire [9:0] up_waddr_s;
   wire [31:0] up_wdata_s;
-  wire [NUM_CHANNELS:0] up_wack_s;
+  wire [NUM_CHANNELS+1:0] up_wack_s;
   wire up_rreq_s;
-  wire [13:0] up_raddr_s;
-  wire [31:0] up_rdata_s[0:NUM_CHANNELS];
-  wire [NUM_CHANNELS:0] up_rack_s;
+  wire [9:0] up_raddr_s;
+  wire [31:0] up_rdata_s[0:NUM_CHANNELS+1];
+  wire [NUM_CHANNELS+1:0] up_rack_s;
 
   // internal clocks and resets
 
@@ -105,7 +116,8 @@ module ad_ip_jesd204_tpl_dac_regmap #(
   // up bus interface
 
   up_axi #(
-    .AXI_ADDRESS_WIDTH (16)
+    .AXI_ADDRESS_WIDTH (12),
+    .ADDRESS_WIDTH (10)
   ) i_up_axi (
     .up_clk (up_clk),
     .up_rstn (up_rstn),
@@ -142,7 +154,7 @@ module ad_ip_jesd204_tpl_dac_regmap #(
 
   always @(*) begin
     up_rdata_all = 'h00;
-    for (n = 0; n < NUM_CHANNELS + 1; n = n + 1) begin
+    for (n = 0; n < NUM_CHANNELS + 2; n = n + 1) begin
       up_rdata_all = up_rdata_all | up_rdata_s[n];
      end
   end
@@ -202,11 +214,11 @@ module ad_ip_jesd204_tpl_dac_regmap #(
     .up_rstn (up_rstn),
 
     .up_wreq (up_wreq_s),
-    .up_waddr (up_waddr_s),
+    .up_waddr ({4'b0,up_waddr_s}),
     .up_wdata (up_wdata_s),
     .up_wack (up_wack_s[0]),
     .up_rreq (up_rreq_s),
-    .up_raddr (up_raddr_s),
+    .up_raddr ({4'b0,up_raddr_s}),
     .up_rdata (up_rdata_s[0]),
     .up_rack (up_rack_s[0])
   );
@@ -253,15 +265,43 @@ module ad_ip_jesd204_tpl_dac_regmap #(
       .up_clk (up_clk),
       .up_rstn (up_rstn),
       .up_wreq (up_wreq_s),
-      .up_waddr (up_waddr_s),
+      .up_waddr ({4'b0,up_waddr_s}),
       .up_wdata (up_wdata_s),
       .up_wack (up_wack_s[i+1]),
       .up_rreq (up_rreq_s),
-      .up_raddr (up_raddr_s),
+      .up_raddr ({4'b0,up_raddr_s}),
       .up_rdata (up_rdata_s[i+1]),
       .up_rack (up_rack_s[i+1])
     );
   end
   endgenerate
+
+  up_tpl_common #(
+     .COMMON_ID(2'h0),            // Offset of regmap
+     .NUM_PROFILES(NUM_PROFILES)  // Number of JESD profiles
+    ) i_up_tpl_dac (
+
+    .jesd_m (jesd_m),
+    .jesd_l (jesd_l),
+    .jesd_s (jesd_s),
+    .jesd_f (jesd_f),
+    .jesd_n (jesd_n),
+    .jesd_np (jesd_np),
+
+    .up_profile_sel (up_profile_sel),
+
+    // bus interface
+    .up_clk (up_clk),
+    .up_rstn (up_rstn),
+
+    .up_wreq (up_wreq_s),
+    .up_waddr (up_waddr_s),
+    .up_wdata (up_wdata_s),
+    .up_wack (up_wack_s[NUM_CHANNELS+1]),
+    .up_rreq (up_rreq_s),
+    .up_raddr (up_raddr_s),
+    .up_rdata (up_rdata_s[NUM_CHANNELS+1]),
+    .up_rack (up_rack_s[NUM_CHANNELS+1])
+  );
 
 endmodule
