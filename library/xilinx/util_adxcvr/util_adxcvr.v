@@ -38,7 +38,7 @@
 
 module util_adxcvr #(
 
-  // gtxe2(2), gthe3(5), gthe4(8)
+  // gtxe2(2), gthe3(5), gthe4(8), gtye4(9)
 
   parameter   integer XCVR_TYPE = 0,
 
@@ -55,6 +55,7 @@ module util_adxcvr #(
   parameter   [15:0]  QPLL_CFG2_G3 = 16'b0000111111000000,
   parameter   [15:0]  QPLL_CFG3 = 16'b0000000100100000,
   parameter   [15:0]  QPLL_CFG4 = 16'b0000000000000011,
+  parameter   [15:0]  GTY4_PPF0_CFG  = 16'b0000100000000000,
 
   // cpll-configuration
 
@@ -64,6 +65,10 @@ module util_adxcvr #(
   parameter   [15:0]  CPLL_CFG1 = 16'b0000000000100011,
   parameter   [15:0]  CPLL_CFG2 = 16'b0000000000000010,
   parameter   [15:0]  CPLL_CFG3 = 16'b0000000000000000,
+  parameter   [15:0]  GTY4_CH_HSPMUX        = 16'b0010000000100000,
+  parameter   integer GTY4_PREIQ_FREQ_BST   = 0,
+  parameter   [2:0]   GTY4_RTX_BUF_CML_CTRL = 3'b011,
+  parameter   [15:0]  GTY4_RXPI_CFG0        = 16'b0000000100000000,
 
   // tx-configuration
 
@@ -142,7 +147,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_0,
   input   [ 1:0]  up_tx_sys_clk_sel_0,
   input   [ 2:0]  up_tx_out_clk_sel_0,
-  input   [ 3:0]  up_tx_diffctrl_0,
+  input   [ 4:0]  up_tx_diffctrl_0,
   input   [ 4:0]  up_tx_postcursor_0,
   input   [ 4:0]  up_tx_precursor_0,
   input           up_tx_enb_0,
@@ -201,7 +206,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_1,
   input   [ 1:0]  up_tx_sys_clk_sel_1,
   input   [ 2:0]  up_tx_out_clk_sel_1,
-  input   [ 3:0]  up_tx_diffctrl_1,
+  input   [ 4:0]  up_tx_diffctrl_1,
   input   [ 4:0]  up_tx_postcursor_1,
   input   [ 4:0]  up_tx_precursor_1,
   input           up_tx_enb_1,
@@ -260,7 +265,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_2,
   input   [ 1:0]  up_tx_sys_clk_sel_2,
   input   [ 2:0]  up_tx_out_clk_sel_2,
-  input   [ 3:0]  up_tx_diffctrl_2,
+  input   [ 4:0]  up_tx_diffctrl_2,
   input   [ 4:0]  up_tx_postcursor_2,
   input   [ 4:0]  up_tx_precursor_2,
   input           up_tx_enb_2,
@@ -319,7 +324,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_3,
   input   [ 1:0]  up_tx_sys_clk_sel_3,
   input   [ 2:0]  up_tx_out_clk_sel_3,
-  input   [ 3:0]  up_tx_diffctrl_3,
+  input   [ 4:0]  up_tx_diffctrl_3,
   input   [ 4:0]  up_tx_postcursor_3,
   input   [ 4:0]  up_tx_precursor_3,
   input           up_tx_enb_3,
@@ -386,7 +391,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_4,
   input   [ 1:0]  up_tx_sys_clk_sel_4,
   input   [ 2:0]  up_tx_out_clk_sel_4,
-  input   [ 3:0]  up_tx_diffctrl_4,
+  input   [ 4:0]  up_tx_diffctrl_4,
   input   [ 4:0]  up_tx_postcursor_4,
   input   [ 4:0]  up_tx_precursor_4,
   input           up_tx_enb_4,
@@ -445,7 +450,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_5,
   input   [ 1:0]  up_tx_sys_clk_sel_5,
   input   [ 2:0]  up_tx_out_clk_sel_5,
-  input   [ 3:0]  up_tx_diffctrl_5,
+  input   [ 4:0]  up_tx_diffctrl_5,
   input   [ 4:0]  up_tx_postcursor_5,
   input   [ 4:0]  up_tx_precursor_5,
   input           up_tx_enb_5,
@@ -504,7 +509,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_6,
   input   [ 1:0]  up_tx_sys_clk_sel_6,
   input   [ 2:0]  up_tx_out_clk_sel_6,
-  input   [ 3:0]  up_tx_diffctrl_6,
+  input   [ 4:0]  up_tx_diffctrl_6,
   input   [ 4:0]  up_tx_postcursor_6,
   input   [ 4:0]  up_tx_precursor_6,
   input           up_tx_enb_6,
@@ -563,7 +568,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_7,
   input   [ 1:0]  up_tx_sys_clk_sel_7,
   input   [ 2:0]  up_tx_out_clk_sel_7,
-  input   [ 3:0]  up_tx_diffctrl_7,
+  input   [ 4:0]  up_tx_diffctrl_7,
   input   [ 4:0]  up_tx_postcursor_7,
   input   [ 4:0]  up_tx_precursor_7,
   input           up_tx_enb_7,
@@ -630,7 +635,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_8,
   input   [ 1:0]  up_tx_sys_clk_sel_8,
   input   [ 2:0]  up_tx_out_clk_sel_8,
-  input   [ 3:0]  up_tx_diffctrl_8,
+  input   [ 4:0]  up_tx_diffctrl_8,
   input   [ 4:0]  up_tx_postcursor_8,
   input   [ 4:0]  up_tx_precursor_8,
   input           up_tx_enb_8,
@@ -689,7 +694,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_9,
   input   [ 1:0]  up_tx_sys_clk_sel_9,
   input   [ 2:0]  up_tx_out_clk_sel_9,
-  input   [ 3:0]  up_tx_diffctrl_9,
+  input   [ 4:0]  up_tx_diffctrl_9,
   input   [ 4:0]  up_tx_postcursor_9,
   input   [ 4:0]  up_tx_precursor_9,
   input           up_tx_enb_9,
@@ -748,7 +753,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_10,
   input   [ 1:0]  up_tx_sys_clk_sel_10,
   input   [ 2:0]  up_tx_out_clk_sel_10,
-  input   [ 3:0]  up_tx_diffctrl_10,
+  input   [ 4:0]  up_tx_diffctrl_10,
   input   [ 4:0]  up_tx_postcursor_10,
   input   [ 4:0]  up_tx_precursor_10,
   input           up_tx_enb_10,
@@ -807,7 +812,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_11,
   input   [ 1:0]  up_tx_sys_clk_sel_11,
   input   [ 2:0]  up_tx_out_clk_sel_11,
-  input   [ 3:0]  up_tx_diffctrl_11,
+  input   [ 4:0]  up_tx_diffctrl_11,
   input   [ 4:0]  up_tx_postcursor_11,
   input   [ 4:0]  up_tx_precursor_11,
   input           up_tx_enb_11,
@@ -874,7 +879,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_12,
   input   [ 1:0]  up_tx_sys_clk_sel_12,
   input   [ 2:0]  up_tx_out_clk_sel_12,
-  input   [ 3:0]  up_tx_diffctrl_12,
+  input   [ 4:0]  up_tx_diffctrl_12,
   input   [ 4:0]  up_tx_postcursor_12,
   input   [ 4:0]  up_tx_precursor_12,
   input           up_tx_enb_12,
@@ -933,7 +938,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_13,
   input   [ 1:0]  up_tx_sys_clk_sel_13,
   input   [ 2:0]  up_tx_out_clk_sel_13,
-  input   [ 3:0]  up_tx_diffctrl_13,
+  input   [ 4:0]  up_tx_diffctrl_13,
   input   [ 4:0]  up_tx_postcursor_13,
   input   [ 4:0]  up_tx_precursor_13,
   input           up_tx_enb_13,
@@ -992,7 +997,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_14,
   input   [ 1:0]  up_tx_sys_clk_sel_14,
   input   [ 2:0]  up_tx_out_clk_sel_14,
-  input   [ 3:0]  up_tx_diffctrl_14,
+  input   [ 4:0]  up_tx_diffctrl_14,
   input   [ 4:0]  up_tx_postcursor_14,
   input   [ 4:0]  up_tx_precursor_14,
   input           up_tx_enb_14,
@@ -1051,7 +1056,7 @@ module util_adxcvr #(
   input   [ 2:0]  up_tx_rate_15,
   input   [ 1:0]  up_tx_sys_clk_sel_15,
   input   [ 2:0]  up_tx_out_clk_sel_15,
-  input   [ 3:0]  up_tx_diffctrl_15,
+  input   [ 4:0]  up_tx_diffctrl_15,
   input   [ 4:0]  up_tx_postcursor_15,
   input   [ 4:0]  up_tx_precursor_15,
   input           up_tx_enb_15,
@@ -1130,7 +1135,8 @@ module util_adxcvr #(
     .QPLL_CFG2 (QPLL_CFG2),
     .QPLL_CFG2_G3 (QPLL_CFG2_G3),
     .QPLL_CFG3 (QPLL_CFG3),
-    .QPLL_CFG4 (QPLL_CFG4))
+    .QPLL_CFG4 (QPLL_CFG4),
+    .GTY4_PPF0_CFG (GTY4_PPF0_CFG))
   i_xcm_0 (
     .qpll_ref_clk (qpll_ref_clk_0),
     .qpll_sel (qpll_sel_0),
@@ -1179,7 +1185,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 0) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 0) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_0 (
     .qpll2ch_clk (qpll2ch_clk_0),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_0),
@@ -1285,7 +1295,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 1) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 1) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_1 (
     .qpll2ch_clk (qpll2ch_clk_0),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_0),
@@ -1391,7 +1405,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 2) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 2) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_2 (
     .qpll2ch_clk (qpll2ch_clk_0),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_0),
@@ -1497,7 +1515,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 3) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 3) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_3 (
     .qpll2ch_clk (qpll2ch_clk_0),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_0),
@@ -1598,7 +1620,8 @@ module util_adxcvr #(
     .QPLL_CFG2 (QPLL_CFG2),
     .QPLL_CFG2_G3 (QPLL_CFG2_G3),
     .QPLL_CFG3 (QPLL_CFG3),
-    .QPLL_CFG4 (QPLL_CFG4))
+    .QPLL_CFG4 (QPLL_CFG4),
+    .GTY4_PPF0_CFG (GTY4_PPF0_CFG))
   i_xcm_4 (
     .qpll_ref_clk (qpll_ref_clk_4),
     .qpll_sel (qpll_sel_4),
@@ -1647,7 +1670,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 4) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 4) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_4 (
     .qpll2ch_clk (qpll2ch_clk_4),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_4),
@@ -1753,7 +1780,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 5) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 5) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_5 (
     .qpll2ch_clk (qpll2ch_clk_4),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_4),
@@ -1859,7 +1890,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 6) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 6) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_6 (
     .qpll2ch_clk (qpll2ch_clk_4),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_4),
@@ -1965,7 +2000,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 7) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 7) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_7 (
     .qpll2ch_clk (qpll2ch_clk_4),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_4),
@@ -2066,7 +2105,8 @@ module util_adxcvr #(
     .QPLL_CFG2 (QPLL_CFG2),
     .QPLL_CFG2_G3 (QPLL_CFG2_G3),
     .QPLL_CFG3 (QPLL_CFG3),
-    .QPLL_CFG4 (QPLL_CFG4))
+    .QPLL_CFG4 (QPLL_CFG4),
+    .GTY4_PPF0_CFG (GTY4_PPF0_CFG))
   i_xcm_8 (
     .qpll_ref_clk (qpll_ref_clk_8),
     .qpll_sel (qpll_sel_8),
@@ -2115,7 +2155,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 8) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 8) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_8 (
     .qpll2ch_clk (qpll2ch_clk_8),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_8),
@@ -2221,7 +2265,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 9) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 9) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_9 (
     .qpll2ch_clk (qpll2ch_clk_8),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_8),
@@ -2327,7 +2375,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 10) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 10) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_10 (
     .qpll2ch_clk (qpll2ch_clk_8),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_8),
@@ -2433,7 +2485,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 11) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 11) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_11 (
     .qpll2ch_clk (qpll2ch_clk_8),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_8),
@@ -2534,7 +2590,8 @@ module util_adxcvr #(
     .QPLL_CFG2 (QPLL_CFG2),
     .QPLL_CFG2_G3 (QPLL_CFG2_G3),
     .QPLL_CFG3 (QPLL_CFG3),
-    .QPLL_CFG4 (QPLL_CFG4))
+    .QPLL_CFG4 (QPLL_CFG4),
+    .GTY4_PPF0_CFG (GTY4_PPF0_CFG))
   i_xcm_12 (
     .qpll_ref_clk (qpll_ref_clk_12),
     .qpll_sel (qpll_sel_12),
@@ -2583,7 +2640,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 12) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 12) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_12 (
     .qpll2ch_clk (qpll2ch_clk_12),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_12),
@@ -2689,7 +2750,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 13) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 13) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_13 (
     .qpll2ch_clk (qpll2ch_clk_12),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_12),
@@ -2795,7 +2860,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 14) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 14) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_14 (
     .qpll2ch_clk (qpll2ch_clk_12),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_12),
@@ -2901,7 +2970,11 @@ module util_adxcvr #(
     .RX_DFE_LPM_CFG (RX_DFE_LPM_CFG),
     .RX_PMA_CFG (RX_PMA_CFG),
     .RX_CDR_CFG (RX_CDR_CFG),
-    .RX_POLARITY ((RX_LANE_INVERT >> 15) & 1))
+    .RX_POLARITY ((RX_LANE_INVERT >> 15) & 1),
+    .GTY4_CH_HSPMUX (GTY4_CH_HSPMUX),
+    .GTY4_PREIQ_FREQ_BST (GTY4_PREIQ_FREQ_BST),
+    .GTY4_RTX_BUF_CML_CTRL (GTY4_RTX_BUF_CML_CTRL),
+    .GTY4_RXPI_CFG0 (GTY4_RXPI_CFG0))
   i_xch_15 (
     .qpll2ch_clk (qpll2ch_clk_12),
     .qpll2ch_ref_clk (qpll2ch_ref_clk_12),
